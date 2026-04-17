@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Literární aréna 1.1</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --ok: #0f9d58;
+      --bad: #d93025;
+      --accent: #2563eb;
+      --accent-dark: #1d4ed8;
+      --shadow: 0 10px 30px rgba(0,0,0,0.10);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 18px;
+    }
+    .app { width: 100%; max-width: 760px; }
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      margin-bottom: 16px;
+    }
+    h1, h2, p { margin-top: 0; }
+    .title { text-align: center; font-size: 2rem; margin-bottom: 8px; }
+    .subtitle { text-align: center; color: var(--muted); margin-bottom: 0; line-height: 1.5; }
+    .menu-buttons, .actions { display: grid; gap: 12px; }
+    .menu-buttons { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); margin-top: 18px; }
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.08s ease, background 0.2s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px); }
+    .primary { background: var(--accent); color: white; }
+    .primary:hover { background: var(--accent-dark); }
+    .secondary { background: #e5e7eb; color: var(--text); }
+    .question-box { font-size: 1.45rem; line-height: 1.55; font-weight: 700; margin-bottom: 18px; }
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 18px;
+      font-size: 0.95rem;
+    }
+    #timerLabel {
+      color: #b91c1c;
+      background: #fee2e2;
+      padding: 6px 10px;
+      border-radius: 999px;
+    }
+    #timerLabel.timer-warning {
+      animation: pulseTimer 0.8s infinite;
+      color: #fff !important;
+      box-shadow: 0 0 18px rgba(239,68,68,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    @keyframes pulseTimer {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.06); }
+      100% { transform: scale(1); }
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      border: 2px solid #d1d5db;
+      font-size: 1.2rem;
+      margin-bottom: 14px;
+    }
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(37,99,235,0.12);
+    }
+    .feedback {
+      min-height: 78px;
+      border-radius: 14px;
+      padding: 16px;
+      font-weight: 700;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1.45;
+      font-size: 1.15rem;
+      margin-top: 8px;
+    }
+    .feedback.ok { display: flex; background: rgba(15,157,88,0.12); color: var(--ok); }
+    .feedback.bad { display: flex; background: rgba(217,48,37,0.12); color: var(--bad); }
+    .big-error { display: block; font-size: 1.6rem; margin-bottom: 8px; }
+    #sectionLabel {
+      color: #1d4ed8;
+      background: #dbeafe;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-weight: 800;
+    }
+    .hidden { display: none !important; }
+    .result-mark { text-align: center; font-size: 3.5rem; font-weight: 900; margin: 8px 0 14px; }
+    .result-text { text-align: center; font-size: 1.15rem; line-height: 1.6; margin-bottom: 18px; }
+    .result-banner { text-align: center; font-size: 1.35rem; font-weight: 900; margin: 4px 0 12px; }
+    .result-card-1 { background: linear-gradient(180deg, #fff7d6 0%, #ffffff 100%); }
+    .result-card-2 { background: linear-gradient(180deg, #eaf7ff 0%, #ffffff 100%); }
+    .result-card-3 { background: linear-gradient(180deg, #f4f4ff 0%, #ffffff 100%); }
+    .result-card-4 { background: linear-gradient(180deg, #fff3e8 0%, #ffffff 100%); }
+    .result-card-5 { background: linear-gradient(180deg, #ffeaea 0%, #ffffff 100%); }
+    .section-list { margin: 10px 0 0; padding-left: 20px; line-height: 1.6; }
+
+
+.home-card {
+      overflow: hidden;
+      position: relative;
+      padding: 26px 22px 22px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.20), rgba(245, 158, 11, 0) 32%),
+        linear-gradient(180deg, #0c1220 0%, #101827 52%, #1f2937 100%);
+      color: #f9fafb;
+      border: 1px solid rgba(251, 191, 36, 0.18);
+      box-shadow: 0 20px 44px rgba(0,0,0,0.40);
+    }
+    .home-title {
+      position: relative;
+      text-align: center;
+      font-size: 2.8rem;
+      margin: 0 0 10px;
+      color: #fff3c4;
+      text-shadow: 0 0 24px rgba(251, 191, 36, 0.28), 0 3px 16px rgba(0,0,0,0.55);
+      letter-spacing: 0.02em;
+    }
+    .home-subtitle {
+      position: relative;
+      text-align: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.55rem;
+      margin: 0 0 18px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    }
+    .home-buttons {
+      grid-template-columns: repeat(2, minmax(180px, 1fr));
+      gap: 14px;
+      margin: 0 0 16px;
+    }
+    .home-buttons .primary {
+      border-radius: 16px;
+      padding: 18px 16px;
+      font-size: 1.15rem;
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.18);
+      position: relative;
+      overflow: hidden;
+    }
+    .home-buttons .primary:first-child {
+      background: linear-gradient(180deg, #1f9d55 0%, #0d5f34 100%);
+    }
+    .home-buttons .primary:last-child {
+      background: linear-gradient(180deg, #c63f28 0%, #7d1710 100%);
+    }
+    .home-buttons .primary::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+    .hero-arena-wrap {
+      position: relative;
+      height: 300px;
+      margin-top: 2px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(250, 204, 21, 0.22);
+      box-shadow: inset 0 0 42px rgba(0,0,0,0.38), 0 12px 28px rgba(0,0,0,0.28);
+      background-image:
+        linear-gradient(180deg, rgba(4,8,18,0.20), rgba(4,8,18,0.40)),
+        url("arena.jpg");
+      background-size: cover;
+      background-position: center;
+    }
+    .hero-arena-wrap::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 66%, rgba(255, 188, 71, 0.18), rgba(255,188,71,0) 22%),
+        radial-gradient(circle at 9% 56%, rgba(255, 145, 35, 0.28), rgba(255,145,35,0) 10%),
+        radial-gradient(circle at 91% 56%, rgba(255, 145, 35, 0.28), rgba(255,145,35,0) 10%),
+        radial-gradient(circle at 44% 32%, rgba(255, 189, 92, 0.10), rgba(255,189,92,0) 18%),
+        radial-gradient(circle at 56% 32%, rgba(255, 189, 92, 0.10), rgba(255,189,92,0) 18%);
+      opacity: 0.92;
+      animation: arenaFlicker 2.6s infinite ease-in-out;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+    .hero-arena-wrap::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 11% 54%, rgba(255,225,160,0.15), rgba(255,225,160,0) 4%),
+        radial-gradient(circle at 89% 54%, rgba(255,225,160,0.15), rgba(255,225,160,0) 4%),
+        radial-gradient(circle at 50% 68%, rgba(255,255,255,0.07), rgba(255,255,255,0) 22%);
+      animation: arenaGlow 3.4s infinite ease-in-out;
+      pointer-events: none;
+    }
+    .arena-embers {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 15% 18%, rgba(255,180,80,0.95) 0 1px, transparent 2px),
+        radial-gradient(circle at 28% 10%, rgba(255,160,50,0.85) 0 1px, transparent 2px),
+        radial-gradient(circle at 47% 14%, rgba(255,180,80,0.85) 0 1.5px, transparent 2.5px),
+        radial-gradient(circle at 62% 8%, rgba(255,160,50,0.85) 0 1px, transparent 2px),
+        radial-gradient(circle at 77% 16%, rgba(255,190,90,0.9) 0 1.2px, transparent 2.2px),
+        radial-gradient(circle at 86% 11%, rgba(255,170,60,0.8) 0 1px, transparent 2px);
+      opacity: 0.55;
+      animation: emberFloat 5.5s infinite ease-in-out;
+    }
+    @keyframes arenaFlicker {
+      0%, 100% { opacity: 0.78; transform: scale(1); }
+      20% { opacity: 0.98; transform: scale(1.01); }
+      45% { opacity: 0.72; transform: scale(0.997); }
+      70% { opacity: 0.94; transform: scale(1.008); }
+    }
+    @keyframes arenaGlow {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 0.95; }
+    }
+    @keyframes emberFloat {
+      0%, 100% { transform: translateY(0px); opacity: 0.35; }
+      50% { transform: translateY(-8px); opacity: 0.65; }
+    }
+    .hero-kicker, .home-note, .arena-sky-glow, .arena-statue, .arena-torch, .arena-wall, .arena-arches, .arena-arch, .arena-sand-line, .arena-floor {
+      display: none !important;
+    }
+    .arena-floor::before {
+      content: "";
+      position: absolute;
+      inset: 11px 26px;
+      border-radius: 50%;
+      border: 2px solid rgba(251, 191, 36, 0.24);
+    }
+    .arena-floor::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 14px;
+      width: 120px;
+      height: 34px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(254,249,195,0.36) 0%, rgba(254,215,170,0.08) 46%, rgba(254,215,170,0) 100%);
+      filter: blur(6px);
+      animation: pulseGlow 3.6s ease-in-out infinite;
+    }
+    .arena-sand-line {
+      position: absolute;
+      left: 50%;
+      bottom: 52px;
+      width: 62%;
+      height: 18px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      border-top: 2px solid rgba(245, 222, 179, 0.22);
+      opacity: 0.55;
+    }
+    @keyframes pulseGlow {
+      0%,100% { transform: translateX(-50%) scale(0.96); opacity: 0.75; }
+      50% { transform: translateX(-50%) scale(1.06); opacity: 1; }
+    }
+    @keyframes torchFlicker {
+      0% { transform: translateX(-50%) scale(0.96) translateY(0); opacity: 0.86; }
+      100% { transform: translateX(-50%) scale(1.06) translateY(-2px); opacity: 1; }
+    }
+
+    .practice-select-card {
+      overflow: hidden;
+      position: relative;
+      padding: 26px 22px 22px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.16), rgba(245, 158, 11, 0) 32%),
+        linear-gradient(180deg, #0b101b 0%, #101827 55%, #1b2432 100%);
+      color: #f9fafb;
+      border: 1px solid rgba(251, 191, 36, 0.16);
+      box-shadow: 0 20px 44px rgba(0,0,0,0.42);
+    }
+    .practice-select-title {
+      position: relative;
+      text-align: center;
+      font-size: 2.1rem;
+      margin: 0 0 8px;
+      color: #fff3c4;
+      text-shadow: 0 0 24px rgba(251, 191, 36, 0.22), 0 3px 16px rgba(0,0,0,0.55);
+      letter-spacing: 0.02em;
+    }
+    .practice-select-subtitle {
+      position: relative;
+      text-align: center;
+      color: #f8e7bc;
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin: 0 0 18px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    }
+    .section-select-grid {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .section-select-btn {
+      position: relative;
+      border-radius: 16px;
+      padding: 18px 16px;
+      font-size: 1.06rem;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      color: #fff9e7;
+      background:
+        linear-gradient(180deg, rgba(120, 54, 23, 0.95), rgba(76, 30, 18, 0.96)),
+        radial-gradient(circle at 50% 0%, rgba(255, 210, 126, 0.24), transparent 55%);
+      border: 1px solid rgba(255, 210, 126, 0.18);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    .section-select-btn:hover {
+      background:
+        linear-gradient(180deg, rgba(145, 63, 25, 0.98), rgba(92, 33, 18, 0.98)),
+        radial-gradient(circle at 50% 0%, rgba(255, 218, 145, 0.30), transparent 55%);
+    }
+    .section-select-actions {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      margin-top: 4px;
+    }
+    .section-select-actions .secondary {
+      min-width: 220px;
+      background: rgba(255,255,255,0.12);
+      color: #f8e7bc;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    @media (max-width: 640px) {
+      .card { padding: 18px; }
+      .title { font-size: 1.7rem; }
+      .question-box { font-size: 1.25rem; }
+      .result-mark { font-size: 2.8rem; }
+      input[type="text"] { font-size: 1.08rem; }
+      .home-title { font-size: 2rem; }
+      .home-subtitle { font-size: 1.14rem; }
+      .home-buttons { grid-template-columns: 1fr; }
+      .arena-statue.left { left: 28px; }
+      .arena-statue.right { right: 28px; }
+      .arena-torch.left { left: 64px; }
+      .arena-torch.right { right: 64px; }
+      .hero-arena-wrap { height: 228px; }
+    }
+
+    /* HERO IMAGE OVERRIDES */
+
+.home-card {
+      overflow: hidden;
+      position: relative;
+      padding: 26px 22px 22px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.20), rgba(245, 158, 11, 0) 32%),
+        linear-gradient(180deg, #0c1220 0%, #101827 52%, #1f2937 100%);
+      color: #f9fafb;
+      border: 1px solid rgba(251, 191, 36, 0.18);
+      box-shadow: 0 20px 44px rgba(0,0,0,0.40);
+    }
+    .home-title {
+      position: relative;
+      text-align: center;
+      font-size: 2.8rem;
+      margin: 0 0 10px;
+      color: #fff3c4;
+      text-shadow: 0 0 24px rgba(251, 191, 36, 0.28), 0 3px 16px rgba(0,0,0,0.55);
+      letter-spacing: 0.02em;
+    }
+    .home-subtitle {
+      position: relative;
+      text-align: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.55rem;
+      margin: 0 0 18px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    }
+    .home-buttons {
+      grid-template-columns: repeat(2, minmax(180px, 1fr));
+      gap: 14px;
+      margin: 0 0 16px;
+    }
+    .home-buttons .primary {
+      border-radius: 16px;
+      padding: 18px 16px;
+      font-size: 1.15rem;
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.18);
+      position: relative;
+      overflow: hidden;
+    }
+    .home-buttons .primary:first-child {
+      background: linear-gradient(180deg, #1f9d55 0%, #0d5f34 100%);
+    }
+    .home-buttons .primary:last-child {
+      background: linear-gradient(180deg, #c63f28 0%, #7d1710 100%);
+    }
+    .home-buttons .primary::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+    .hero-arena-wrap {
+      position: relative;
+      height: 300px;
+      margin-top: 2px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(250, 204, 21, 0.22);
+      box-shadow: inset 0 0 42px rgba(0,0,0,0.38), 0 12px 28px rgba(0,0,0,0.28);
+      background-image:
+        linear-gradient(180deg, rgba(4,8,18,0.20), rgba(4,8,18,0.40)),
+        url("arena.jpg");
+      background-size: cover;
+      background-position: center;
+    }
+    .hero-arena-wrap::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 66%, rgba(255, 188, 71, 0.18), rgba(255,188,71,0) 22%),
+        radial-gradient(circle at 9% 56%, rgba(255, 145, 35, 0.28), rgba(255,145,35,0) 10%),
+        radial-gradient(circle at 91% 56%, rgba(255, 145, 35, 0.28), rgba(255,145,35,0) 10%),
+        radial-gradient(circle at 44% 32%, rgba(255, 189, 92, 0.10), rgba(255,189,92,0) 18%),
+        radial-gradient(circle at 56% 32%, rgba(255, 189, 92, 0.10), rgba(255,189,92,0) 18%);
+      opacity: 0.92;
+      animation: arenaFlicker 2.6s infinite ease-in-out;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+    .hero-arena-wrap::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 11% 54%, rgba(255,225,160,0.15), rgba(255,225,160,0) 4%),
+        radial-gradient(circle at 89% 54%, rgba(255,225,160,0.15), rgba(255,225,160,0) 4%),
+        radial-gradient(circle at 50% 68%, rgba(255,255,255,0.07), rgba(255,255,255,0) 22%);
+      animation: arenaGlow 3.4s infinite ease-in-out;
+      pointer-events: none;
+    }
+    .arena-embers {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 15% 18%, rgba(255,180,80,0.95) 0 1px, transparent 2px),
+        radial-gradient(circle at 28% 10%, rgba(255,160,50,0.85) 0 1px, transparent 2px),
+        radial-gradient(circle at 47% 14%, rgba(255,180,80,0.85) 0 1.5px, transparent 2.5px),
+        radial-gradient(circle at 62% 8%, rgba(255,160,50,0.85) 0 1px, transparent 2px),
+        radial-gradient(circle at 77% 16%, rgba(255,190,90,0.9) 0 1.2px, transparent 2.2px),
+        radial-gradient(circle at 86% 11%, rgba(255,170,60,0.8) 0 1px, transparent 2px);
+      opacity: 0.55;
+      animation: emberFloat 5.5s infinite ease-in-out;
+    }
+    @keyframes arenaFlicker {
+      0%, 100% { opacity: 0.78; transform: scale(1); }
+      20% { opacity: 0.98; transform: scale(1.01); }
+      45% { opacity: 0.72; transform: scale(0.997); }
+      70% { opacity: 0.94; transform: scale(1.008); }
+    }
+    @keyframes arenaGlow {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 0.95; }
+    }
+    @keyframes emberFloat {
+      0%, 100% { transform: translateY(0px); opacity: 0.35; }
+      50% { transform: translateY(-8px); opacity: 0.65; }
+    }
+    .hero-kicker, .home-note, .arena-sky-glow, .arena-statue, .arena-torch, .arena-wall, .arena-arches, .arena-arch, .arena-sand-line, .arena-floor {
+      display: none !important;
+    }
+
+
+    body {
+      background:
+        radial-gradient(circle at 50% 20%, rgba(255,210,120,0.10), rgba(7,10,18,0.92) 45%, rgba(4,6,12,0.98) 100%),
+        linear-gradient(180deg, #0b1020 0%, #060811 100%);
+      color: #f4ead5;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(6,8,14,0.18), rgba(6,8,14,0.88)),
+        url('arena.jpg') center/cover no-repeat;
+      opacity: 0;
+      transition: opacity 0.45s ease;
+      pointer-events: none;
+      z-index: -2;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 18% 44%, rgba(255,160,55,0.16), transparent 18%),
+        radial-gradient(circle at 82% 45%, rgba(255,160,55,0.16), transparent 18%),
+        radial-gradient(circle at 50% 58%, rgba(255,214,140,0.09), transparent 24%);
+      opacity: 0;
+      animation: arenaFlicker 3.2s ease-in-out infinite;
+      transition: opacity 0.45s ease;
+      pointer-events: none;
+      z-index: -1;
+      mix-blend-mode: screen;
+    }
+    body.quiz-mode::before,
+    body.quiz-mode::after,
+    body.result-mode::before,
+    body.result-mode::after {
+      opacity: 1;
+    }
+    @keyframes arenaFlicker {
+      0%, 100% { filter: brightness(0.9); }
+      50% { filter: brightness(1.14); }
+    }
+    .app { max-width: 860px; }
+    #screen-quiz.card {
+      background:
+        linear-gradient(180deg, rgba(32,23,18,0.88), rgba(17,13,11,0.94)),
+        radial-gradient(circle at top, rgba(255,202,112,0.12), transparent 30%);
+      border: 1px solid rgba(244, 207, 135, 0.18);
+      box-shadow: 0 18px 55px rgba(0,0,0,0.38), inset 0 0 0 1px rgba(255,255,255,0.03);
+      color: #f7edd7;
+      backdrop-filter: blur(8px);
+      position: relative;
+      overflow: hidden;
+    }
+    #screen-quiz.card::before {
+      content: "";
+      position: absolute;
+      inset: -10% -8% auto -8%;
+      height: 210px;
+      background: radial-gradient(circle at 50% 0%, rgba(255,224,152,0.24), transparent 62%);
+      pointer-events: none;
+    }
+    #screen-quiz .meta {
+      gap: 16px;
+      margin-bottom: 28px;
+      align-items: center;
+    }
+    #screen-quiz .meta > div {
+      background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
+      border: 1px solid rgba(244, 207, 135, 0.22);
+      color: #f5e8c8;
+      padding: 12px 18px;
+      border-radius: 16px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 18px rgba(0,0,0,0.18);
+      font-size: 1.08rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+    }
+    #modeLabel {
+      background: linear-gradient(180deg, rgba(54, 83, 139, 0.55), rgba(29, 53, 102, 0.45)) !important;
+      color: #e8f0ff !important;
+      border-color: rgba(157, 190, 255, 0.24) !important;
+    }
+    #progressLabel {
+      background: linear-gradient(180deg, rgba(91, 67, 24, 0.55), rgba(62, 43, 12, 0.45)) !important;
+      color: #fff1c7 !important;
+      border-color: rgba(255, 213, 122, 0.24) !important;
+    }
+    #timerLabel {
+      background: linear-gradient(180deg, rgba(122, 24, 24, 0.45), rgba(78, 16, 16, 0.38)) !important;
+      color: #ffe0da !important;
+      border-color: rgba(255,123,123,0.24) !important;
+      font-size: 1.22rem !important;
+      padding: 14px 20px !important;
+      min-width: 120px;
+      text-align: center;
+    }
+    #sectionLabel {
+      background: linear-gradient(180deg, rgba(91, 52, 14, 0.62), rgba(60, 32, 8, 0.46)) !important;
+      color: #fff1d6 !important;
+      border-color: rgba(255, 200, 104, 0.24) !important;
+      border-radius: 18px !important;
+      padding: 14px 20px !important;
+      font-size: 1.14rem !important;
+      font-weight: 900 !important;
+      text-align: center;
+      flex: 1 1 100%;
+    }
+    .question-box {
+      font-size: 1.72rem;
+      line-height: 1.5;
+      font-weight: 800;
+      margin-bottom: 22px;
+      text-align: center;
+      color: #fff6df;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255,200,110,0.11), rgba(255,200,110,0.02) 48%, transparent 72%);
+      padding: 28px 18px 24px;
+      border-radius: 24px;
+      letter-spacing: 0.01em;
+      text-shadow: 0 0 18px rgba(0,0,0,0.35);
+      min-height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(244, 207, 135, 0.14);
+      box-shadow: inset 0 0 28px rgba(255,185,88,0.05);
+    }
+    #answerInput {
+      background: rgba(255,251,241,0.97);
+      border: 2px solid rgba(182,125,54,0.52);
+      color: #2f2417;
+      border-radius: 18px;
+      padding: 18px 18px;
+      font-size: 1.24rem;
+      font-weight: 700;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+    #answerInput::placeholder { color: #8c7351; }
+    #answerInput:focus {
+      border-color: #f0c36a;
+      box-shadow: 0 0 0 4px rgba(240,195,106,0.18), 0 16px 32px rgba(0,0,0,0.20);
+    }
+    #screen-quiz .actions {
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      margin-top: 18px;
+    }
+    #screen-quiz button.primary {
+      background: linear-gradient(180deg, #d89a2f 0%, #8f5f14 100%);
+      box-shadow: 0 12px 22px rgba(64,36,2,0.35), inset 0 1px 0 rgba(255,238,194,0.4);
+    }
+    #screen-quiz button.primary:hover { background: linear-gradient(180deg, #e2a83f 0%, #9d6d1d 100%); }
+    #screen-quiz button.secondary {
+      background: linear-gradient(180deg, #3c342d 0%, #211c18 100%);
+      color: #f1e4c7;
+      border: 1px solid rgba(244, 207, 135, 0.16);
+    }
+    #screen-quiz button.secondary:hover {
+      background: linear-gradient(180deg, #4a4138 0%, #2b241f 100%);
+    }
+    .feedback {
+      margin-top: 16px;
+      min-height: 92px;
+      font-size: 1.22rem;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.22);
+    }
+    .feedback.ok {
+      background: linear-gradient(180deg, rgba(24,124,67,0.28), rgba(10,74,38,0.34));
+      color: #dff7e7;
+      border-color: rgba(112,231,157,0.22);
+    }
+    .feedback.bad {
+      background: linear-gradient(180deg, rgba(143,31,31,0.26), rgba(92,14,14,0.34));
+      color: #ffe2df;
+      border-color: rgba(255,138,138,0.22);
+    }
+    #screen-result.card {
+      background:
+        linear-gradient(180deg, rgba(32,23,18,0.88), rgba(17,13,11,0.94)),
+        radial-gradient(circle at top, rgba(255,202,112,0.12), transparent 30%);
+      border: 1px solid rgba(244, 207, 135, 0.18);
+      color: #f7edd7;
+      box-shadow: 0 18px 55px rgba(0,0,0,0.38);
+    }
+    @media (max-width: 640px) {
+      .question-box {
+        font-size: 1.4rem;
+        min-height: 120px;
+        padding: 22px 14px 18px;
+      }
+      #answerInput { font-size: 1.14rem; }
+      #screen-quiz .meta > div {
+        width: 100%;
+        text-align: center;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="app">
+
+<div id="screen-home" class="card home-card">
+      <h1 class="home-title">Literární aréna 1.1</h1>
+      <p class="home-subtitle">Zapiš klíčové slovo</p>
+      <div class="menu-buttons home-buttons">
+        <button class="primary" onclick="handlePracticeStart()">TRÉNINK</button>
+        <button class="primary" onclick="handleSharpStart()">SOUBOJ</button>
+      </div>
+      <div class="actions" style="margin-bottom:16px;">
+        <button class="secondary" onclick="openResultsTable()">VÝSLEDKOVÁ TABULKA</button>
+      </div>
+      <div class="hero-arena-wrap" aria-hidden="true">
+        <div class="arena-embers"></div>
+      </div>
+    </div>
+
+    <div id="screen-practice-sections" class="card hidden practice-select-card">
+      <h2 class="practice-select-title">TRÉNINK</h2>
+      <p class="practice-select-subtitle">Vyber oddíl, který chceš procvičovat.</p>
+      <div id="practiceSectionGrid" class="section-select-grid"></div>
+      <div class="section-select-actions">
+        <button class="secondary" onclick="goHome()">ZPĚT NA ÚVOD</button>
+      </div>
+    </div>
+
+    <div id="screen-info" class="card hidden">
+      <h2>Rozdělení testu</h2>
+      <p>Každý test obsahuje přesně 16 otázek. Z každého oddílu přijdou 2 otázky.</p>
+      <ul id="sectionBreakdown" class="section-list"></ul>
+    </div>
+
+    <div id="screen-quiz" class="card hidden">
+      <div class="meta">
+        <div id="modeLabel">Režim: TRÉNINK</div>
+        <div id="progressLabel">Otázka 1</div>
+        <div id="timerLabel" class="hidden">Čas: 15 s</div>
+        <div id="sectionLabel">Oddíl: —</div>
+        <div id="practiceStats" class="hidden">Správně: 0 | Špatně: 0</div>
+      </div>
+      <div id="questionText" class="question-box"></div>
+      <input id="answerInput" type="text" placeholder="Napiš odpověď..." autocomplete="off" />
+      <div class="actions">
+        <button id="submitBtn" class="primary" onclick="submitAnswer()">POTVRDIT</button>
+        <button id="nextBtn" class="secondary hidden" onclick="nextQuestion()">DALŠÍ OTÁZKA</button>
+        <button class="secondary" onclick="goHome()">ZPĚT NA ÚVOD</button>
+      </div>
+      <div id="feedback" class="feedback"></div>
+    </div>
+
+    <div id="screen-result" class="card hidden">
+      <h2 style="text-align:center;">Výsledek testu</h2>
+      <div id="resultBanner" class="result-banner"></div>
+      <div id="resultMark" class="result-mark">1</div>
+      <div id="resultText" class="result-text"></div>
+      <div id="saveStatus" class="result-text" style="margin-top:0; margin-bottom:14px; font-size:1rem;"></div>
+      <div class="actions">
+        <button class="primary" onclick="handleSharpStart()">HRÁT ZNOVU SOUBOJ</button>
+        <button class="secondary" onclick="openResultsTable()">VÝSLEDKOVÁ TABULKA</button>
+        <button class="secondary" onclick="goHome()">ZPĚT NA ÚVOD</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const RESULTS_ENDPOINT = "https://script.google.com/macros/s/AKfycbxQBJaSlsougAH2Wot97IPW4a7vAFooWZ3ZXFQpQRLQozs5fZzOqt8uiAFFsRjBO3o/exec";
+    const RESULTS_TABLE_URL = "https://docs.google.com/spreadsheets/d/19YcKwdMQ09afN3JTGhnbLQhqbIA9V6zOnQynRRM0eRU/edit?usp=sharing";
+    const PENDING_RESULTS_KEY = 'literarniArenaPendingResults';
+    let currentStudentName = "";
+    let currentStudentClass = "";
+
+    const questionBank = {};
+    let currentMode = 'practice';
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let correctCount = 0;
+    let wrongCount = 0;
+    let answered = false;
+    let autoAdvanceTimer = null;
+    let questionTimer = null;
+    let timeRemaining = 15;
+    let currentPracticeSection = null;
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function ensureAudioReady() {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function tone(freq, start, duration, type = 'sine', volume = 0.24) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, start);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(volume, start + 0.015);
+      gain.gain.exponentialRampToValueAtTime(Math.max(volume * 0.45, 0.0001), start + Math.max(duration - 0.05, 0.02));
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+      osc.start(start);
+      osc.stop(start + duration);
+    }
+
+    function chord(freqs, delay, duration, type = 'sine', volume = 0.18) {
+      const start = audioCtx.currentTime + delay;
+      freqs.forEach(freq => tone(freq, start, duration, type, volume));
+    }
+
+    function playErrorSound() {
+      ensureAudioReady();
+      const now = audioCtx.currentTime;
+      tone(196.00, now, 0.16, 'sawtooth', 0.28);
+      tone(164.81, now + 0.08, 0.18, 'square', 0.24);
+      tone(130.81, now + 0.18, 0.30, 'sawtooth', 0.30);
+      tone(98.00, now + 0.26, 0.36, 'triangle', 0.20);
+    }
+
+    function playSuccessSound() {
+      ensureAudioReady();
+      const now = audioCtx.currentTime;
+      tone(523.25, now, 0.12, 'triangle', 0.20);
+      tone(659.25, now + 0.10, 0.14, 'triangle', 0.22);
+      tone(783.99, now + 0.20, 0.16, 'triangle', 0.24);
+      chord([1046.50, 1318.51, 1567.98], 0.32, 0.34, 'sine', 0.14);
+    }
+
+    function playArenaSound(mode = 'practice') {
+      ensureAudioReady();
+      const now = audioCtx.currentTime;
+      const base = mode === 'sharp' ? 196 : 220;
+      const partials = [
+        { f: base * 1.00, v: 0.09, t: 'triangle', d: 0.55 },
+        { f: base * 1.41, v: 0.08, t: 'sine', d: 0.48 },
+        { f: base * 2.17, v: 0.06, t: 'triangle', d: 0.42 },
+        { f: base * 2.92, v: 0.05, t: 'sine', d: 0.34 },
+        { f: base * 3.76, v: 0.04, t: 'triangle', d: 0.28 }
+      ];
+      partials.forEach((p, i) => tone(p.f, now + i * 0.004, p.d, p.t, p.v));
+      tone(base * 0.50, now + 0.018, 0.18, 'square', mode === 'sharp' ? 0.11 : 0.08);
+      tone(base * 4.6, now + 0.006, 0.08, 'sine', 0.025);
+      tone(base * 3.2, now + 0.11, 0.18, 'triangle', 0.03);
+    }
+
+    function playGradeSound(mark) {
+      ensureAudioReady();
+      if (mark === 1) {
+        const now = audioCtx.currentTime;
+        tone(523.25, now, 0.12, 'triangle', 0.20);
+        tone(659.25, now + 0.11, 0.12, 'triangle', 0.22);
+        tone(783.99, now + 0.22, 0.14, 'triangle', 0.24);
+        chord([1046.50, 1318.51, 1567.98], 0.36, 0.55, 'sine', 0.18);
+        chord([2093.00], 0.42, 0.45, 'triangle', 0.12);
+      } else if (mark === 2) {
+        const now = audioCtx.currentTime;
+        tone(493.88, now, 0.13, 'triangle', 0.20);
+        tone(587.33, now + 0.11, 0.13, 'triangle', 0.20);
+        chord([698.46, 987.77], 0.24, 0.42, 'sine', 0.14);
+      } else if (mark === 3) {
+        const now = audioCtx.currentTime;
+        tone(392.00, now, 0.14, 'triangle', 0.18);
+        tone(440.00, now + 0.12, 0.14, 'triangle', 0.18);
+        tone(523.25, now + 0.25, 0.28, 'sine', 0.14);
+      } else if (mark === 4) {
+        const now = audioCtx.currentTime;
+        tone(246.94, now, 0.18, 'square', 0.22);
+        tone(220.00, now + 0.14, 0.22, 'square', 0.24);
+        tone(196.00, now + 0.28, 0.30, 'sawtooth', 0.26);
+      } else {
+        const now = audioCtx.currentTime;
+        tone(196.00, now, 0.18, 'square', 0.24);
+        tone(174.61, now + 0.14, 0.20, 'square', 0.26);
+        tone(146.83, now + 0.28, 0.30, 'sawtooth', 0.28);
+        tone(110.00, now + 0.42, 0.42, 'sawtooth', 0.30);
+      }
+    }
+
+    function normalizeText(text) {
+      return text
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[.,!?;:"'`()]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function isWithinOneEdit(a, b) {
+      if (a === b) return true;
+      const lenA = a.length;
+      const lenB = b.length;
+      if (Math.abs(lenA - lenB) > 1) return false;
+      let i = 0;
+      let j = 0;
+      let edits = 0;
+      while (i < lenA && j < lenB) {
+        if (a[i] === b[j]) {
+          i++;
+          j++;
+          continue;
+        }
+        edits++;
+        if (edits > 1) return false;
+        if (lenA > lenB) i++;
+        else if (lenB > lenA) j++;
+        else {
+          i++;
+          j++;
+        }
+      }
+      if (i < lenA || j < lenB) edits++;
+      return edits <= 1;
+    }
+
+    function isAcceptedAnswer(userAnswer, answers) {
+      if (!userAnswer) return false;
+      return answers.some(answer => {
+        const normalizedAnswer = normalizeText(answer);
+        return userAnswer === normalizedAnswer || isWithinOneEdit(userAnswer, normalizedAnswer);
+      });
+    }
+
+    function shuffle(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function formatAnswer(answer) {
+      return answer.toUpperCase();
+    }
+
+    function buildSharpTest() { return []; }
+    function buildPracticePool(sectionKey = null) { return []; }
+    function getPracticeSectionMenu() { return []; }
+    function renderPracticeSectionButtons() {}
+    function updateSectionBreakdown() {}
+
+    function showScreen(id) {
+      document.getElementById('screen-home').classList.add('hidden');
+      document.getElementById('screen-practice-sections').classList.add('hidden');
+      document.getElementById('screen-info').classList.add('hidden');
+      document.getElementById('screen-quiz').classList.add('hidden');
+      document.getElementById('screen-result').classList.add('hidden');
+      document.getElementById(id).classList.remove('hidden');
+      document.body.classList.remove('quiz-mode', 'result-mode');
+      if (id === 'screen-quiz') document.body.classList.add('quiz-mode');
+      if (id === 'screen-result') document.body.classList.add('result-mode');
+    }
+
+    function clearAutoAdvanceTimer() {
+      if (autoAdvanceTimer) {
+        clearTimeout(autoAdvanceTimer);
+        autoAdvanceTimer = null;
+      }
+    }
+
+    function clearQuestionTimer() {
+      if (questionTimer) {
+        clearInterval(questionTimer);
+        questionTimer = null;
+      }
+      const timerLabel = document.getElementById('timerLabel');
+      timerLabel.classList.add('hidden');
+      timerLabel.classList.remove('timer-warning');
+      timerLabel.textContent = 'Čas: 15 s';
+    }
+
+    function startQuestionTimer() {}
+    function goHome() { showScreen('screen-home'); }
+
+    let menuAudioCtx = null;
+    function ensureMenuAudio() {
+      if (!menuAudioCtx) {
+        menuAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (menuAudioCtx.state === "suspended") {
+        menuAudioCtx.resume();
+      }
+      return menuAudioCtx;
+    }
+
+    function playMetalClang(isStrong = false) {}
+
+    function collectStudentIdentity() {
+      const storedName = localStorage.getItem('literarniArenaStudentName') || currentStudentName || '';
+      const storedClass = localStorage.getItem('literarniArenaStudentClass') || currentStudentClass || '';
+      const enteredName = prompt('Zadej své jméno a příjmení:', storedName);
+      if (enteredName === null) return false;
+      const cleanName = enteredName.trim();
+      if (!cleanName) {
+        alert('Bez jména nemůže být výsledek zapsán do tabulky.');
+        return false;
+      }
+      const enteredClass = prompt('Zadej svou třídu:', storedClass);
+      if (enteredClass === null) return false;
+      currentStudentName = cleanName;
+      currentStudentClass = enteredClass.trim();
+      localStorage.setItem('literarniArenaStudentName', currentStudentName);
+      localStorage.setItem('literarniArenaStudentClass', currentStudentClass);
+      return true;
+    }
+
+    function openResultsTable() {
+      window.open(RESULTS_TABLE_URL, '_blank', 'noopener');
+    }
+
+    function setSaveStatus(message, isError = false) {
+      const el = document.getElementById('saveStatus');
+      if (!el) return;
+      el.textContent = message || '';
+      el.style.color = isError ? '#fecaca' : '#f7edd7';
+    }
+
+    function getPendingResults() {
+      try {
+        return JSON.parse(localStorage.getItem(PENDING_RESULTS_KEY) || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function setPendingResults(items) {
+      localStorage.setItem(PENDING_RESULTS_KEY, JSON.stringify(items));
+    }
+
+    function queuePendingResult(payload) {
+      const pending = getPendingResults();
+      pending.push(payload);
+      setPendingResults(pending);
+    }
+
+    function submitResultWithForm(payload) {
+      return new Promise((resolve, reject) => {
+        try {
+          const iframeName = 'results_sink_' + Date.now();
+          const iframe = document.createElement('iframe');
+          iframe.name = iframeName;
+          iframe.style.display = 'none';
+          document.body.appendChild(iframe);
+
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = RESULTS_ENDPOINT;
+          form.target = iframeName;
+          form.style.display = 'none';
+
+          Object.entries(payload).forEach(([key, value]) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = value == null ? '' : String(value);
+            form.appendChild(input);
+          });
+
+          document.body.appendChild(form);
+
+          let settled = false;
+          const cleanup = () => {
+            setTimeout(() => {
+              form.remove();
+              iframe.remove();
+            }, 1200);
+          };
+
+          iframe.addEventListener('load', () => {
+            if (settled) return;
+            settled = true;
+            cleanup();
+            resolve(true);
+          }, { once: true });
+
+          form.submit();
+
+          setTimeout(() => {
+            if (settled) return;
+            settled = true;
+            cleanup();
+            resolve(true);
+          }, 1800);
+        } catch (error) {
+          reject(error);
+        }
+      });
+    }
+
+    async function flushPendingResults() {
+      const pending = getPendingResults();
+      if (!pending.length) return;
+      const remaining = [];
+      for (const item of pending) {
+        try {
+          await submitResultWithForm(item);
+        } catch (error) {
+          remaining.push(item);
+        }
+      }
+      setPendingResults(remaining);
+    }
+
+    async function sendSharpResult(mark, total) {
+      if (!currentStudentName) return false;
+      const payload = {
+        jmeno: currentStudentName,
+        trida: currentStudentClass,
+        rezim: 'SOUBOJ',
+        znamka: mark,
+        body: correctCount,
+        celkem: total,
+        spravne: correctCount,
+        spatne: wrongCount,
+        poznamka: '',
+        odeslano: new Date().toISOString()
+      };
+
+      try {
+        await flushPendingResults();
+        await submitResultWithForm(payload);
+        return true;
+      } catch (error) {
+        queuePendingResult(payload);
+        return false;
+      }
+    }
+
+    function handlePracticeStart() {}
+    function handleSharpStart() {}
+    function openPracticeSections() {}
+    function selectPracticeSection(sectionKey) {}
+    function startPractice(sectionKey) {}
+    function startSharp() {}
+    function renderQuestion() {}
+    function submitAnswer(isTimeout = false) {}
+    function nextQuestion() {}
+
+    function calculateMark(score) {
+      if (score >= 14) return 1;
+      if (score >= 12) return 2;
+      if (score >= 9) return 3;
+      if (score >= 7) return 4;
+      return 5;
+    }
+
+    async function showResults() {
+      clearAutoAdvanceTimer();
+      clearQuestionTimer();
+      const total = currentQuestions.length;
+      const mark = calculateMark(correctCount);
+
+      document.getElementById('resultMark').textContent = mark;
+      document.getElementById('screen-result').className = `card result-card-${mark}`;
+      document.getElementById('resultBanner').textContent =
+        mark === 1 ? '🔥 MÁŠ JEDNIČKU!' :
+        mark === 2 ? '👏 VELMI PĚKNÝ VÝSLEDEK' :
+        mark === 3 ? '🙂 TOHLE JE JEŠTĚ DOBRÉ' :
+        mark === 4 ? '⚠️ TĚSNĚ TO VYŠLO' :
+        '📘 TO CHCE JEŠTĚ PROCVIČIT';
+
+      document.getElementById('resultText').innerHTML = `
+        Body: <strong>${correctCount}</strong> z <strong>${total}</strong>.<br>
+        Slovní hodnocení: <strong>${
+          mark === 1 ? 'výborně' :
+          mark === 2 ? 'chvalitebně' :
+          mark === 3 ? 'dobře' :
+          mark === 4 ? 'dostatečně' :
+          'nedostatečně'
+        }</strong><br>
+        Výsledná známka: <strong>${mark}</strong>
+      `;
+
+      setSaveStatus('Odesílám výsledek do tabulky...');
+      showScreen('screen-result');
+      playGradeSound(mark);
+
+      const saved = await sendSharpResult(mark, total);
+
+      if (saved) {
+        setSaveStatus('Výsledek byl odeslán do tabulky.');
+      } else {
+        setSaveStatus('Výsledek se zatím nepodařilo odeslat. Uložil se lokálně a zkusí se poslat při dalším spuštění.', true);
+      }
+    }
+
+    document.getElementById('answerInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        if (!answered) {
+          submitAnswer();
+        } else if (!autoAdvanceTimer) {
+          nextQuestion();
+        }
+      }
+    });
+
+    updateSectionBreakdown();
+    renderPracticeSectionButtons();
+  </script>
+</body>
+</html>
