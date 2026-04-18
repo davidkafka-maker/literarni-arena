@@ -1,0 +1,3055 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Literární aréna 1.1</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --ok: #0f9d58;
+      --bad: #d93025;
+      --accent: #2563eb;
+      --accent-dark: #1d4ed8;
+      --shadow: 0 10px 30px rgba(0,0,0,0.10);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 18px;
+    }
+    .app { width: 100%; max-width: 760px; }
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      margin-bottom: 16px;
+    }
+    h1, h2, p { margin-top: 0; }
+    .title { text-align: center; font-size: 2rem; margin-bottom: 8px; }
+    .subtitle { text-align: center; color: var(--muted); margin-bottom: 0; line-height: 1.5; }
+    .menu-buttons, .actions { display: grid; gap: 12px; }
+    .menu-buttons { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); margin-top: 18px; }
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.08s ease, background 0.2s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px); }
+    .primary { background: var(--accent); color: white; }
+    .primary:hover { background: var(--accent-dark); }
+    .secondary { background: #e5e7eb; color: var(--text); }
+    .question-box { font-size: 1.45rem; line-height: 1.55; font-weight: 700; margin-bottom: 18px; }
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 18px;
+      font-size: 0.95rem;
+    }
+    #timerLabel {
+      color: #b91c1c;
+      background: #fee2e2;
+      padding: 6px 10px;
+      border-radius: 999px;
+    }
+    #timerLabel.timer-warning {
+      animation: pulseTimer 0.8s infinite;
+      color: #fff !important;
+      box-shadow: 0 0 18px rgba(239,68,68,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    @keyframes pulseTimer {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.06); }
+      100% { transform: scale(1); }
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      border: 2px solid #d1d5db;
+      font-size: 1.2rem;
+      margin-bottom: 14px;
+    }
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(37,99,235,0.12);
+    }
+    .feedback {
+      min-height: 78px;
+      border-radius: 14px;
+      padding: 16px;
+      font-weight: 700;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1.45;
+      font-size: 1.15rem;
+      margin-top: 8px;
+    }
+    .feedback.ok { display: flex; background: rgba(15,157,88,0.12); color: var(--ok); }
+    .feedback.bad { display: flex; background: rgba(217,48,37,0.12); color: var(--bad); }
+    .big-error { display: block; font-size: 1.6rem; margin-bottom: 8px; }
+    #sectionLabel {
+      color: #1d4ed8;
+      background: #dbeafe;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-weight: 800;
+    }
+    .hidden { display: none !important; }
+    .result-mark { text-align: center; font-size: 3.5rem; font-weight: 900; margin: 8px 0 14px; }
+    .result-text { text-align: center; font-size: 1.15rem; line-height: 1.6; margin-bottom: 18px; }
+    .result-banner { text-align: center; font-size: 1.35rem; font-weight: 900; margin: 4px 0 12px; }
+    .result-card-1 { background: linear-gradient(180deg, #fff7d6 0%, #ffffff 100%); }
+    .result-card-2 { background: linear-gradient(180deg, #eaf7ff 0%, #ffffff 100%); }
+    .result-card-3 { background: linear-gradient(180deg, #f4f4ff 0%, #ffffff 100%); }
+    .result-card-4 { background: linear-gradient(180deg, #fff3e8 0%, #ffffff 100%); }
+    .result-card-5 { background: linear-gradient(180deg, #ffeaea 0%, #ffffff 100%); }
+    .section-list { margin: 10px 0 0; padding-left: 20px; line-height: 1.6; }
+
+    
+.home-card {
+      overflow: hidden;
+      position: relative;
+      padding: 26px 22px 22px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.20), rgba(245, 158, 11, 0) 32%),
+        linear-gradient(180deg, #0c1220 0%, #101827 52%, #1f2937 100%);
+      color: #f9fafb;
+      border: 1px solid rgba(251, 191, 36, 0.18);
+      box-shadow: 0 20px 44px rgba(0,0,0,0.40);
+    }
+    .home-title {
+      position: relative;
+      text-align: center;
+      font-size: 2.8rem;
+      margin: 0 0 10px;
+      color: #fff3c4;
+      text-shadow: 0 0 24px rgba(251, 191, 36, 0.28), 0 3px 16px rgba(0,0,0,0.55);
+      letter-spacing: 0.02em;
+    }
+    .home-subtitle {
+      position: relative;
+      text-align: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.55rem;
+      margin: 0 0 18px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    }
+    .home-buttons {
+      grid-template-columns: repeat(2, minmax(180px, 1fr));
+      gap: 14px;
+      margin: 0 0 16px;
+    }
+    .home-buttons .primary {
+      border-radius: 16px;
+      padding: 18px 16px;
+      font-size: 1.15rem;
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.18);
+      position: relative;
+      overflow: hidden;
+    }
+    .home-buttons .primary:first-child {
+      background: linear-gradient(180deg, #1f9d55 0%, #0d5f34 100%);
+    }
+    .home-buttons .primary:last-child {
+      background: linear-gradient(180deg, #c63f28 0%, #7d1710 100%);
+    }
+    .home-buttons .primary::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+    .hero-arena-wrap {
+      position: relative;
+      height: 300px;
+      margin-top: 2px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(250, 204, 21, 0.22);
+      box-shadow: inset 0 0 42px rgba(0,0,0,0.38), 0 12px 28px rgba(0,0,0,0.28);
+      background-image:
+        linear-gradient(180deg, rgba(4,8,18,0.20), rgba(4,8,18,0.40)),
+        url("arena.jpg");
+      background-size: cover;
+      background-position: center;
+    }
+    .hero-arena-wrap::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 66%, rgba(255, 188, 71, 0.18), rgba(255,188,71,0) 22%),
+        radial-gradient(circle at 9% 56%, rgba(255, 145, 35, 0.28), rgba(255,145,35,0) 10%),
+        radial-gradient(circle at 91% 56%, rgba(255, 145, 35, 0.28), rgba(255,145,35,0) 10%),
+        radial-gradient(circle at 44% 32%, rgba(255, 189, 92, 0.10), rgba(255,189,92,0) 18%),
+        radial-gradient(circle at 56% 32%, rgba(255, 189, 92, 0.10), rgba(255,189,92,0) 18%);
+      opacity: 0.92;
+      animation: arenaFlicker 2.6s infinite ease-in-out;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+    .hero-arena-wrap::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 11% 54%, rgba(255,225,160,0.15), rgba(255,225,160,0) 4%),
+        radial-gradient(circle at 89% 54%, rgba(255,225,160,0.15), rgba(255,225,160,0) 4%),
+        radial-gradient(circle at 50% 68%, rgba(255,255,255,0.07), rgba(255,255,255,0) 22%);
+      animation: arenaGlow 3.4s infinite ease-in-out;
+      pointer-events: none;
+    }
+    .arena-embers {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 15% 18%, rgba(255,180,80,0.95) 0 1px, transparent 2px),
+        radial-gradient(circle at 28% 10%, rgba(255,160,50,0.85) 0 1px, transparent 2px),
+        radial-gradient(circle at 47% 14%, rgba(255,180,80,0.85) 0 1.5px, transparent 2.5px),
+        radial-gradient(circle at 62% 8%, rgba(255,160,50,0.85) 0 1px, transparent 2px),
+        radial-gradient(circle at 77% 16%, rgba(255,190,90,0.9) 0 1.2px, transparent 2.2px),
+        radial-gradient(circle at 86% 11%, rgba(255,170,60,0.8) 0 1px, transparent 2px);
+      opacity: 0.55;
+      animation: emberFloat 5.5s infinite ease-in-out;
+    }
+    @keyframes arenaFlicker {
+      0%, 100% { opacity: 0.78; transform: scale(1); }
+      20% { opacity: 0.98; transform: scale(1.01); }
+      45% { opacity: 0.72; transform: scale(0.997); }
+      70% { opacity: 0.94; transform: scale(1.008); }
+    }
+    @keyframes arenaGlow {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 0.95; }
+    }
+    @keyframes emberFloat {
+      0%, 100% { transform: translateY(0px); opacity: 0.35; }
+      50% { transform: translateY(-8px); opacity: 0.65; }
+    }
+    .hero-kicker, .home-note, .arena-sky-glow, .arena-statue, .arena-torch, .arena-wall, .arena-arches, .arena-arch, .arena-sand-line, .arena-floor {
+      display: none !important;
+    }
+    .arena-floor::before {
+      content: "";
+      position: absolute;
+      inset: 11px 26px;
+      border-radius: 50%;
+      border: 2px solid rgba(251, 191, 36, 0.24);
+    }
+    .arena-floor::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 14px;
+      width: 120px;
+      height: 34px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(254,249,195,0.36) 0%, rgba(254,215,170,0.08) 46%, rgba(254,215,170,0) 100%);
+      filter: blur(6px);
+      animation: pulseGlow 3.6s ease-in-out infinite;
+    }
+    .arena-sand-line {
+      position: absolute;
+      left: 50%;
+      bottom: 52px;
+      width: 62%;
+      height: 18px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      border-top: 2px solid rgba(245, 222, 179, 0.22);
+      opacity: 0.55;
+    }
+    @keyframes pulseGlow {
+      0%,100% { transform: translateX(-50%) scale(0.96); opacity: 0.75; }
+      50% { transform: translateX(-50%) scale(1.06); opacity: 1; }
+    }
+    @keyframes torchFlicker {
+      0% { transform: translateX(-50%) scale(0.96) translateY(0); opacity: 0.86; }
+      100% { transform: translateX(-50%) scale(1.06) translateY(-2px); opacity: 1; }
+    }
+
+    .practice-select-card {
+      overflow: hidden;
+      position: relative;
+      padding: 26px 22px 22px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.16), rgba(245, 158, 11, 0) 32%),
+        linear-gradient(180deg, #0b101b 0%, #101827 55%, #1b2432 100%);
+      color: #f9fafb;
+      border: 1px solid rgba(251, 191, 36, 0.16);
+      box-shadow: 0 20px 44px rgba(0,0,0,0.42);
+    }
+    .practice-select-title {
+      position: relative;
+      text-align: center;
+      font-size: 2.1rem;
+      margin: 0 0 8px;
+      color: #fff3c4;
+      text-shadow: 0 0 24px rgba(251, 191, 36, 0.22), 0 3px 16px rgba(0,0,0,0.55);
+      letter-spacing: 0.02em;
+    }
+    .practice-select-subtitle {
+      position: relative;
+      text-align: center;
+      color: #f8e7bc;
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin: 0 0 18px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    }
+    .section-select-grid {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .section-select-btn {
+      position: relative;
+      border-radius: 16px;
+      padding: 18px 16px;
+      font-size: 1.06rem;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      color: #fff9e7;
+      background:
+        linear-gradient(180deg, rgba(120, 54, 23, 0.95), rgba(76, 30, 18, 0.96)),
+        radial-gradient(circle at 50% 0%, rgba(255, 210, 126, 0.24), transparent 55%);
+      border: 1px solid rgba(255, 210, 126, 0.18);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    .section-select-btn:hover {
+      background:
+        linear-gradient(180deg, rgba(145, 63, 25, 0.98), rgba(92, 33, 18, 0.98)),
+        radial-gradient(circle at 50% 0%, rgba(255, 218, 145, 0.30), transparent 55%);
+    }
+    .section-select-actions {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      margin-top: 4px;
+    }
+    .section-select-actions .secondary {
+      min-width: 220px;
+      background: rgba(255,255,255,0.12);
+      color: #f8e7bc;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    @media (max-width: 640px) {
+      .card { padding: 18px; }
+      .title { font-size: 1.7rem; }
+      .question-box { font-size: 1.25rem; }
+      .result-mark { font-size: 2.8rem; }
+      input[type="text"] { font-size: 1.08rem; }
+      .home-title { font-size: 2rem; }
+      .home-subtitle { font-size: 1.14rem; }
+      .home-buttons { grid-template-columns: 1fr; }
+      .arena-statue.left { left: 28px; }
+      .arena-statue.right { right: 28px; }
+      .arena-torch.left { left: 64px; }
+      .arena-torch.right { right: 64px; }
+      .hero-arena-wrap { height: 228px; }
+    }
+  
+    /* HERO IMAGE OVERRIDES */
+    
+.home-card {
+      overflow: hidden;
+      position: relative;
+      padding: 26px 22px 22px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.20), rgba(245, 158, 11, 0) 32%),
+        linear-gradient(180deg, #0c1220 0%, #101827 52%, #1f2937 100%);
+      color: #f9fafb;
+      border: 1px solid rgba(251, 191, 36, 0.18);
+      box-shadow: 0 20px 44px rgba(0,0,0,0.40);
+    }
+    .home-title {
+      position: relative;
+      text-align: center;
+      font-size: 2.8rem;
+      margin: 0 0 10px;
+      color: #fff3c4;
+      text-shadow: 0 0 24px rgba(251, 191, 36, 0.28), 0 3px 16px rgba(0,0,0,0.55);
+      letter-spacing: 0.02em;
+    }
+    .home-subtitle {
+      position: relative;
+      text-align: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.55rem;
+      margin: 0 0 18px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    }
+    .home-buttons {
+      grid-template-columns: repeat(2, minmax(180px, 1fr));
+      gap: 14px;
+      margin: 0 0 16px;
+    }
+    .home-buttons .primary {
+      border-radius: 16px;
+      padding: 18px 16px;
+      font-size: 1.15rem;
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.18);
+      position: relative;
+      overflow: hidden;
+    }
+    .home-buttons .primary:first-child {
+      background: linear-gradient(180deg, #1f9d55 0%, #0d5f34 100%);
+    }
+    .home-buttons .primary:last-child {
+      background: linear-gradient(180deg, #c63f28 0%, #7d1710 100%);
+    }
+    .home-buttons .primary::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+    .hero-arena-wrap {
+      position: relative;
+      height: 300px;
+      margin-top: 2px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(250, 204, 21, 0.22);
+      box-shadow: inset 0 0 42px rgba(0,0,0,0.38), 0 12px 28px rgba(0,0,0,0.28);
+      background-image:
+        linear-gradient(180deg, rgba(4,8,18,0.20), rgba(4,8,18,0.40)),
+        url("arena.jpg");
+      background-size: cover;
+      background-position: center;
+    }
+    .hero-arena-wrap::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 66%, rgba(255, 188, 71, 0.18), rgba(255,188,71,0) 22%),
+        radial-gradient(circle at 9% 56%, rgba(255, 145, 35, 0.28), rgba(255,145,35,0) 10%),
+        radial-gradient(circle at 91% 56%, rgba(255, 145, 35, 0.28), rgba(255,145,35,0) 10%),
+        radial-gradient(circle at 44% 32%, rgba(255, 189, 92, 0.10), rgba(255,189,92,0) 18%),
+        radial-gradient(circle at 56% 32%, rgba(255, 189, 92, 0.10), rgba(255,189,92,0) 18%);
+      opacity: 0.92;
+      animation: arenaFlicker 2.6s infinite ease-in-out;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+    .hero-arena-wrap::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 11% 54%, rgba(255,225,160,0.15), rgba(255,225,160,0) 4%),
+        radial-gradient(circle at 89% 54%, rgba(255,225,160,0.15), rgba(255,225,160,0) 4%),
+        radial-gradient(circle at 50% 68%, rgba(255,255,255,0.07), rgba(255,255,255,0) 22%);
+      animation: arenaGlow 3.4s infinite ease-in-out;
+      pointer-events: none;
+    }
+    .arena-embers {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 15% 18%, rgba(255,180,80,0.95) 0 1px, transparent 2px),
+        radial-gradient(circle at 28% 10%, rgba(255,160,50,0.85) 0 1px, transparent 2px),
+        radial-gradient(circle at 47% 14%, rgba(255,180,80,0.85) 0 1.5px, transparent 2.5px),
+        radial-gradient(circle at 62% 8%, rgba(255,160,50,0.85) 0 1px, transparent 2px),
+        radial-gradient(circle at 77% 16%, rgba(255,190,90,0.9) 0 1.2px, transparent 2.2px),
+        radial-gradient(circle at 86% 11%, rgba(255,170,60,0.8) 0 1px, transparent 2px);
+      opacity: 0.55;
+      animation: emberFloat 5.5s infinite ease-in-out;
+    }
+    @keyframes arenaFlicker {
+      0%, 100% { opacity: 0.78; transform: scale(1); }
+      20% { opacity: 0.98; transform: scale(1.01); }
+      45% { opacity: 0.72; transform: scale(0.997); }
+      70% { opacity: 0.94; transform: scale(1.008); }
+    }
+    @keyframes arenaGlow {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 0.95; }
+    }
+    @keyframes emberFloat {
+      0%, 100% { transform: translateY(0px); opacity: 0.35; }
+      50% { transform: translateY(-8px); opacity: 0.65; }
+    }
+    .hero-kicker, .home-note, .arena-sky-glow, .arena-statue, .arena-torch, .arena-wall, .arena-arches, .arena-arch, .arena-sand-line, .arena-floor {
+      display: none !important;
+    }
+
+  
+    body {
+      background:
+        radial-gradient(circle at 50% 20%, rgba(255,210,120,0.10), rgba(7,10,18,0.92) 45%, rgba(4,6,12,0.98) 100%),
+        linear-gradient(180deg, #0b1020 0%, #060811 100%);
+      color: #f4ead5;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(6,8,14,0.18), rgba(6,8,14,0.88)),
+        url('arena.jpg') center/cover no-repeat;
+      opacity: 0;
+      transition: opacity 0.45s ease;
+      pointer-events: none;
+      z-index: -2;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 18% 44%, rgba(255,160,55,0.16), transparent 18%),
+        radial-gradient(circle at 82% 45%, rgba(255,160,55,0.16), transparent 18%),
+        radial-gradient(circle at 50% 58%, rgba(255,214,140,0.09), transparent 24%);
+      opacity: 0;
+      animation: arenaFlicker 3.2s ease-in-out infinite;
+      transition: opacity 0.45s ease;
+      pointer-events: none;
+      z-index: -1;
+      mix-blend-mode: screen;
+    }
+    body.quiz-mode::before,
+    body.quiz-mode::after,
+    body.result-mode::before,
+    body.result-mode::after {
+      opacity: 1;
+    }
+    @keyframes arenaFlicker {
+      0%, 100% { filter: brightness(0.9); }
+      50% { filter: brightness(1.14); }
+    }
+    .app { max-width: 860px; }
+    #screen-quiz.card {
+      background:
+        linear-gradient(180deg, rgba(32,23,18,0.88), rgba(17,13,11,0.94)),
+        radial-gradient(circle at top, rgba(255,202,112,0.12), transparent 30%);
+      border: 1px solid rgba(244, 207, 135, 0.18);
+      box-shadow: 0 18px 55px rgba(0,0,0,0.38), inset 0 0 0 1px rgba(255,255,255,0.03);
+      color: #f7edd7;
+      backdrop-filter: blur(8px);
+      position: relative;
+      overflow: hidden;
+    }
+    #screen-quiz.card::before {
+      content: "";
+      position: absolute;
+      inset: -10% -8% auto -8%;
+      height: 210px;
+      background: radial-gradient(circle at 50% 0%, rgba(255,224,152,0.24), transparent 62%);
+      pointer-events: none;
+    }
+    #screen-quiz .meta {
+      gap: 16px;
+      margin-bottom: 28px;
+      align-items: center;
+    }
+    #screen-quiz .meta > div {
+      background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
+      border: 1px solid rgba(244, 207, 135, 0.22);
+      color: #f5e8c8;
+      padding: 12px 18px;
+      border-radius: 16px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 18px rgba(0,0,0,0.18);
+      font-size: 1.08rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+    }
+    #modeLabel {
+      background: linear-gradient(180deg, rgba(54, 83, 139, 0.55), rgba(29, 53, 102, 0.45)) !important;
+      color: #e8f0ff !important;
+      border-color: rgba(157, 190, 255, 0.24) !important;
+    }
+    #progressLabel {
+      background: linear-gradient(180deg, rgba(91, 67, 24, 0.55), rgba(62, 43, 12, 0.45)) !important;
+      color: #fff1c7 !important;
+      border-color: rgba(255, 213, 122, 0.24) !important;
+    }
+    #timerLabel {
+      background: linear-gradient(180deg, rgba(122, 24, 24, 0.45), rgba(78, 16, 16, 0.38)) !important;
+      color: #ffe0da !important;
+      border-color: rgba(255,123,123,0.24) !important;
+      font-size: 1.22rem !important;
+      padding: 14px 20px !important;
+      min-width: 120px;
+      text-align: center;
+    }
+    #sectionLabel {
+      background: linear-gradient(180deg, rgba(91, 52, 14, 0.62), rgba(60, 32, 8, 0.46)) !important;
+      color: #fff1d6 !important;
+      border-color: rgba(255, 200, 104, 0.24) !important;
+      border-radius: 18px !important;
+      padding: 14px 20px !important;
+      font-size: 1.14rem !important;
+      font-weight: 900 !important;
+      text-align: center;
+      flex: 1 1 100%;
+    }
+    .question-box {
+      font-size: 1.72rem;
+      line-height: 1.5;
+      font-weight: 800;
+      margin-bottom: 22px;
+      text-align: center;
+      color: #fff6df;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255,200,110,0.11), rgba(255,200,110,0.02) 48%, transparent 72%);
+      padding: 28px 18px 24px;
+      border-radius: 24px;
+      letter-spacing: 0.01em;
+      text-shadow: 0 0 18px rgba(0,0,0,0.35);
+      min-height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(244, 207, 135, 0.14);
+      box-shadow: inset 0 0 28px rgba(255,185,88,0.05);
+    }
+    #answerInput {
+      background: rgba(255,251,241,0.97);
+      border: 2px solid rgba(182,125,54,0.52);
+      color: #2f2417;
+      border-radius: 18px;
+      padding: 18px 18px;
+      font-size: 1.24rem;
+      font-weight: 700;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+    #answerInput::placeholder { color: #8c7351; }
+    #answerInput:focus {
+      border-color: #f0c36a;
+      box-shadow: 0 0 0 4px rgba(240,195,106,0.18), 0 16px 32px rgba(0,0,0,0.20);
+    }
+    #screen-quiz .actions {
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      margin-top: 18px;
+    }
+    #screen-quiz button.primary {
+      background: linear-gradient(180deg, #d89a2f 0%, #8f5f14 100%);
+      box-shadow: 0 12px 22px rgba(64,36,2,0.35), inset 0 1px 0 rgba(255,238,194,0.4);
+    }
+    #screen-quiz button.primary:hover { background: linear-gradient(180deg, #e2a83f 0%, #9d6d1d 100%); }
+    #screen-quiz button.secondary {
+      background: linear-gradient(180deg, #3c342d 0%, #211c18 100%);
+      color: #f1e4c7;
+      border: 1px solid rgba(244, 207, 135, 0.16);
+    }
+    #screen-quiz button.secondary:hover {
+      background: linear-gradient(180deg, #4a4138 0%, #2b241f 100%);
+    }
+    .feedback {
+      margin-top: 16px;
+      min-height: 92px;
+      font-size: 1.22rem;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.22);
+    }
+    .feedback.ok {
+      background: linear-gradient(180deg, rgba(24,124,67,0.28), rgba(10,74,38,0.34));
+      color: #dff7e7;
+      border-color: rgba(112,231,157,0.22);
+    }
+    .feedback.bad {
+      background: linear-gradient(180deg, rgba(143,31,31,0.26), rgba(92,14,14,0.34));
+      color: #ffe2df;
+      border-color: rgba(255,138,138,0.22);
+    }
+    #screen-result.card {
+      background:
+        linear-gradient(180deg, rgba(32,23,18,0.88), rgba(17,13,11,0.94)),
+        radial-gradient(circle at top, rgba(255,202,112,0.12), transparent 30%);
+      border: 1px solid rgba(244, 207, 135, 0.18);
+      color: #f7edd7;
+      box-shadow: 0 18px 55px rgba(0,0,0,0.38);
+    }
+    @media (max-width: 640px) {
+      .question-box {
+        font-size: 1.4rem;
+        min-height: 120px;
+        padding: 22px 14px 18px;
+      }
+      #answerInput { font-size: 1.14rem; }
+      #screen-quiz .meta > div {
+        width: 100%;
+        text-align: center;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="app">
+    
+<div id="screen-home" class="card home-card">
+      <h1 class="home-title">Literární aréna 1.1</h1>
+      <p class="home-subtitle">Zapiš klíčové slovo</p>
+      <div class="menu-buttons home-buttons">
+        <button class="primary" onclick="handlePracticeStart()">TRÉNINK</button>
+        <button class="primary" onclick="handleSharpStart()">SOUBOJ</button>
+      </div>
+      <div class="actions" style="margin-bottom:16px;">
+        <button class="secondary" onclick="openResultsTable()">VÝSLEDKOVÁ TABULKA</button>
+      </div>
+      <div class="hero-arena-wrap" aria-hidden="true">
+        <div class="arena-embers"></div>
+      </div>
+    </div>
+
+    <div id="screen-practice-sections" class="card hidden practice-select-card">
+      <h2 class="practice-select-title">TRÉNINK</h2>
+      <p class="practice-select-subtitle">Vyber oddíl, který chceš procvičovat.</p>
+      <div id="practiceSectionGrid" class="section-select-grid"></div>
+      <div class="section-select-actions">
+        <button class="secondary" onclick="goHome()">ZPĚT NA ÚVOD</button>
+      </div>
+    </div>
+
+    <div id="screen-info" class="card hidden">
+      <h2>Rozdělení testu</h2>
+      <p>Každý test obsahuje přesně 16 otázek. Z každého oddílu přijdou 2 otázky.</p>
+      <ul id="sectionBreakdown" class="section-list"></ul>
+    </div>
+
+    <div id="screen-quiz" class="card hidden">
+      <div class="meta">
+        <div id="modeLabel">Režim: TRÉNINK</div>
+        <div id="progressLabel">Otázka 1</div>
+        <div id="timerLabel" class="hidden">Čas: 15 s</div>
+        <div id="sectionLabel">Oddíl: —</div>
+        <div id="practiceStats" class="hidden">Správně: 0 | Špatně: 0</div>
+      </div>
+      <div id="questionText" class="question-box"></div>
+      <input id="answerInput" type="text" placeholder="Napiš odpověď..." autocomplete="off" />
+      <div class="actions">
+        <button id="submitBtn" class="primary" onclick="submitAnswer()">POTVRDIT</button>
+        <button id="nextBtn" class="secondary hidden" onclick="nextQuestion()">DALŠÍ OTÁZKA</button>
+        <button class="secondary" onclick="goHome()">ZPĚT NA ÚVOD</button>
+      </div>
+      <div id="feedback" class="feedback"></div>
+    </div>
+
+    <div id="screen-result" class="card hidden">
+      <h2 style="text-align:center;">Výsledek testu</h2>
+      <div id="resultBanner" class="result-banner"></div>
+      <div id="resultMark" class="result-mark">1</div>
+      <div id="resultText" class="result-text"></div>
+      <div id="saveStatus" class="result-text" style="margin-top:0; margin-bottom:14px; font-size:1rem;"></div>
+      <div class="actions">
+        <button class="primary" onclick="handleSharpStart()">HRÁT ZNOVU SOUBOJ</button>
+        <button class="secondary" onclick="openResultsTable()">VÝSLEDKOVÁ TABULKA</button>
+        <button class="secondary" onclick="goHome()">ZPĚT NA ÚVOD</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const RESULTS_ENDPOINT = "https://script.google.com/macros/s/AKfycbxQBJaSlsougAH2Wot97IPW4a7vAFooWZ3ZXFQpQRLQozs5fZzOqt8uiAFFsRjBO3o/exec";
+    const RESULTS_TABLE_URL = "https://docs.google.com/spreadsheets/d/19YcKwdMQ09afN3JTGhnbLQhqbIA9V6zOnQynRRM0eRU/edit?usp=sharing";
+    let currentStudentName = "";
+    let currentStudentClass = "";
+
+    const questionBank = {
+  "dilo": {
+    "label": "Název literárního díla",
+    "sharpCount": 2,
+    "questions": [
+      {
+        "prompt": "Epos zachycující hněv Achillea se jmenuje ...",
+        "answers": [
+          "ilias",
+          "iliada",
+          "íliada"
+        ]
+      },
+      {
+        "prompt": "Epos o návratu ithackého krále se jmenuje ...",
+        "answers": [
+          "odyssea",
+          "odysseia"
+        ]
+      },
+      {
+        "prompt": "Dílo, ve kterém hledá hlavní hrdina nesmrtelnost, se jmenuje ...",
+        "answers": [
+          "epos o gilgamesovi"
+        ]
+      },
+      {
+        "prompt": "Tragédie o osudu a vině krále Théb se jmenuje ...",
+        "answers": [
+          "král oidipus"
+        ]
+      },
+      {
+        "prompt": "Filozofické dílo o otrocích přikovaných ke skále se jmenuje ...",
+        "answers": [
+          "mýtus o jeskyni"
+        ]
+      },
+      {
+        "prompt": "Dílo, ve kterém Caesar dobývá dnešní Francii, se jmenuje ...",
+        "answers": [
+          "zápisky o válce galské"
+        ]
+      },
+      {
+        "prompt": "Dílo, ve kterém žena zavraždí manžela, se nazývá ...",
+        "answers": [
+          "oresteia"
+        ]
+      },
+      {
+        "prompt": "Tragédie o vraždě dětí se nazývá ...",
+        "answers": [
+          "medea",
+          "médea",
+          "médeia"
+        ]
+      },
+      {
+        "prompt": "Dílo, kde jsou rady mužům, jak se zalíbit ženám, se nazývá ...",
+        "answers": [
+          "umění milovat"
+        ]
+      },
+      {
+        "prompt": "Dílo, kde hrdinný obránce utíká z hořící Tróje, se nazývá ...",
+        "answers": [
+          "aeneis",
+          "aeneida"
+        ]
+      },
+      {
+        "prompt": "Dílo, které autor píše plný stesku z vyhnanství od Černého moře, se nazývá ...",
+        "answers": [
+          "žalozpěvy",
+          "elegie"
+        ]
+      },
+      {
+        "prompt": "Soubor veršovaných bájí (cca 250 příběhů) se nazývá ...",
+        "answers": [
+          "metamorfózy",
+          "proměny"
+        ]
+      },
+      {
+        "prompt": "Dílo, ve kterém se ženy odepřou mužům, se nazývá ...",
+        "answers": [
+          "lysistrate",
+          "lysistraté",
+          "lysistrata"
+        ]
+      },
+      {
+        "prompt": "Filozofické dílo o dobře prožitém životě se nazývá ...",
+        "answers": [
+          "o krátkosti života"
+        ]
+      },
+      {
+        "prompt": "Filozofické dílo pojednávající o tom, proč i dobré lidi potkávají zlé věci, se nazývá ...",
+        "answers": [
+          "o prozřetelnosti"
+        ]
+      },
+      {
+        "prompt": "Texty, které se ukládaly do sarkofágů jako návody pro zemřelé, se nazývají ...",
+        "answers": [
+          "knihy mrtvých",
+          "kniha mrtvých"
+        ]
+      },
+      {
+        "prompt": "Komedie o vychytralém otroku se nazývá ...",
+        "answers": [
+          "lišák pseudolus",
+          "pseudolus"
+        ]
+      },
+      {
+        "prompt": "Antické dílo odhalující poklad a chamtivost se nazývá ...",
+        "answers": [
+          "komedie o hrnci",
+          "aulularia"
+        ]
+      },
+      {
+        "prompt": "Biblická kniha o stvoření světa se nazývá ...",
+        "answers": [
+          "genesis",
+          "1 mojžíšova",
+          "první mojžíšova"
+        ]
+      },
+      {
+        "prompt": "Biblická kniha o vyjití z Egypta se nazývá ...",
+        "answers": [
+          "exodus",
+          "2 mojžíšova",
+          "druhá mojžíšova"
+        ]
+      },
+      {
+        "prompt": "První novozákonní evangelium nese jméno ...",
+        "answers": [
+          "matouš"
+        ]
+      },
+      {
+        "prompt": "Druhé novozákonní evangelium nese jméno ...",
+        "answers": [
+          "marek"
+        ]
+      },
+      {
+        "prompt": "Třetí novozákonní evangelium nese jméno ...",
+        "answers": [
+          "lukáš"
+        ]
+      },
+      {
+        "prompt": "Čtvrté novozákonní evangelium nese jméno ...",
+        "answers": [
+          "jan"
+        ]
+      },
+      {
+        "prompt": "Poslední biblická apokalyptická kniha s prorockým vhledem se nazývá ...",
+        "answers": [
+          "zjevení"
+        ]
+      },
+      {
+        "prompt": "Sbírka 150 starozákonních modliteb a písní se nazývá ...",
+        "answers": [
+          "žalmy"
+        ]
+      },
+      {
+        "prompt": "Legenda o umučení svatého Václava a svaté Ludmily z 10. století se nazývá ...",
+        "answers": [
+          "Kristiánova legenda"
+        ]
+      },
+      {
+        "prompt": "Alegorické dílo, které pojednává o zvířecích radách králi, se nazývá ...",
+        "answers": [
+          "Nová rada"
+        ]
+      },
+      {
+        "prompt": "Soubor textů, ve kterém se nachází i satiry o řemeslnících a konšelích, se nazývá ...",
+        "answers": [
+          "Hradecký rukopis"
+        ]
+      },
+      {
+        "prompt": "Veršovaná předmluva k překladu evangelia do staroslověnštiny se nazývá ...",
+        "answers": [
+          "proglas"
+        ]
+      },
+      {
+        "prompt": "Dílo, ve kterém dojde k hospodské rvačce, se nazývá ...",
+        "answers": [
+          "Podkoní a žák"
+        ]
+      },
+      {
+        "prompt": "Dílo, kde se hádá řemeslník s Neštěstím o nevěru jeho milé Adličky, se nazývá ...",
+        "answers": [
+          "Tkadleček"
+        ]
+      },
+      {
+        "prompt": "Filozofické dílo, které řeší dohadování zemědělce se Smrtí, se nazývá ...",
+        "answers": [
+          "Oráč z Čech",
+          "Zemědělec z Čech",
+          "Ackermann aus Böhmen"
+        ]
+      },
+      {
+        "prompt": "Soubor žákovské poezie, jehož součástí je i skladba Ó Fortuna, se nazývá ...",
+        "answers": [
+          "carmina burana"
+        ]
+      },
+      {
+        "prompt": "Staročeská hra se scenérií středověkého trhu se nazývá ...",
+        "answers": [
+          "mastičkář"
+        ]
+      }
+    ]
+  },
+  "autor": {
+    "label": "Autor",
+    "sharpCount": 2,
+    "questions": [
+      {
+        "prompt": "Autor eposu, ve kterém se řeší spor o Briseovnu, se jmenuje ...",
+        "answers": [
+          "Homér"
+        ]
+      },
+      {
+        "prompt": "Autor eposu o nástrahách kouzelnice Kirké se jmenuje ...",
+        "answers": [
+          "Homér"
+        ]
+      },
+      {
+        "prompt": "Autor tragédie o otcovraždě z nevědomosti se jmenuje ...",
+        "answers": [
+          "Sofoklés"
+        ]
+      },
+      {
+        "prompt": "Autor tragédie, která je inspirována příběhem o plavcích argonautech, se jmenuje ...",
+        "answers": [
+          "Eurípidés",
+          "euripidés"
+        ]
+      },
+      {
+        "prompt": "Autor antického díla o tom, jak je hlavní postava za svůj čin odplaty pronásledována líticemi, se jmenuje ...",
+        "answers": [
+          "aischylos"
+        ]
+      },
+      {
+        "prompt": "Autor komedie o neochotě žen tolerovat mužům zbytečné války či politická rokování se jmenuje ...",
+        "answers": [
+          "Aristofanés"
+        ]
+      },
+      {
+        "prompt": "Autor rozjímání o odpoutaném otrokovi, který hledí do světla ohně, se jmenuje ...",
+        "answers": [
+          "Platón"
+        ]
+      },
+      {
+        "prompt": "Učitel Platóna, který byl odsouzen k smrti a vypil číši bolehlavu, se jmenuje ...",
+        "answers": [
+          "Sókratés",
+          "sokratés"
+        ]
+      },
+      {
+        "prompt": "Autor díla, které řeší Zenónův problém s definicí pohybu, se jmenuje ...",
+        "answers": [
+          "Aristotelés"
+        ]
+      },
+      {
+        "prompt": "Autor filozoficko-vědeckého díla o správném řečnictví se jmenuje ...",
+        "answers": [
+          "Aristotelés"
+        ]
+      },
+      {
+        "prompt": "Autor díla o zásadě tří jednot se jmenuje ...",
+        "answers": [
+          "Aristotelés"
+        ]
+      },
+      {
+        "prompt": "Autor díla o zvláštních radách dívkám, aby se zalíbily mužům, se jmenuje ...",
+        "answers": [
+          "ovidius"
+        ]
+      },
+      {
+        "prompt": "Autor veršované sbírky mýtů, kde je hlavním motivem přeměna, se jmenuje ...",
+        "answers": [
+          "ovidius"
+        ]
+      },
+      {
+        "prompt": "Autor díla psaného ve vyhnanství u Černého moře se jmenuje ...",
+        "answers": [
+          "ovidius"
+        ]
+      },
+      {
+        "prompt": "Autor eposu o trójském hrdinovi, který propojuje řecké a římské dějiny a zároveň je mistrem vytříbené vzorové latiny, se jmenuje ...",
+        "answers": [
+          "vergilius"
+        ]
+      },
+      {
+        "prompt": "Autor spisu o Galech se jmenuje ...",
+        "answers": [
+          "Caesar",
+          "gaius julius Caesar"
+        ]
+      },
+      {
+        "prompt": "Římský autor filozofického díla o dobře naplněném životě nebo o spravedlnosti se jmenuje ...",
+        "answers": [
+          "seneca"
+        ]
+      },
+      {
+        "prompt": "Autor komedie o lakomství či vychytralém sluhovi Pseudolovi se jmenuje ...",
+        "answers": [
+          "plautus"
+        ]
+      },
+      {
+        "prompt": "Autor (editor) knihy Genesis se jmenuje ...",
+        "answers": [
+          "Mojžíš"
+        ]
+      },
+      {
+        "prompt": "Autor (editor) knihy Exodus se jmenuje ...",
+        "answers": [
+          "Mojžíš"
+        ]
+      },
+      {
+        "prompt": "Autor biblických Žalmů je tradičně spojován s králem ...",
+        "answers": [
+          "David"
+        ]
+      },
+      {
+        "prompt": "Autor nejstarší Kroniky české, která je psaná latinsky, se jmenuje ...",
+        "answers": [
+          "kosmas"
+        ]
+      },
+      {
+        "prompt": "Autor Proglasu se jmenuje ...",
+        "answers": [
+          "Konstantin",
+          "Cyril",
+          "Konstantin Cyril"
+        ]
+      },
+      {
+        "prompt": "Autor alegorické skladby o zvířatech, která radí Václavovi IV. coby Lvu, se jmenuje ...",
+        "answers": [
+          "Smil Flaška z Pardubic"
+        ]
+      },
+      {
+        "prompt": "Autor sporu mezi zemědělcem a Smrtí, kdo je vinen, se jmenuje ...",
+        "answers": [
+          "Jan ze Žatce"
+        ]
+      }
+    ]
+  },
+  "forma": {
+    "label": "Výrazová forma",
+    "sharpCount": 2,
+    "questions": [
+      {
+        "prompt": "Dílo od nevidomého autora, v němž vystupují bohové zasahující do bojů před hradbami Tróje, je psáno výrazovou formou ...",
+        "answers": [
+          "poezie"
+        ]
+      },
+      {
+        "prompt": "Vyprávění o dlouhém návratu hrdiny přes moře a ostrovy ke své manželce je psáno formou ...",
+        "answers": [
+          "poezie"
+        ]
+      },
+      {
+        "prompt": "Text, v němž hrdina hledá tajemství věčného života, je psán formou ...",
+        "answers": [
+          "poezie"
+        ]
+      },
+      {
+        "prompt": "Dílo, ve kterém se hrdina oslepí po odhalení pravdy o svém původu, je psáno formou ...",
+        "answers": [
+          "drama"
+        ]
+      },
+      {
+        "prompt": "Text, kde je otrok vyveden ze tmy k poznání světla, je psán formou ...",
+        "answers": [
+          "próza",
+          "proza"
+        ]
+      },
+      {
+        "prompt": "Dílo zachycující vojenské tažení římského vojevůdce má formu ...",
+        "answers": [
+          "próza",
+          "proza"
+        ]
+      },
+      {
+        "prompt": "Text, kde žena zavraždí svého manžela, je psán formou ...",
+        "answers": [
+          "drama"
+        ]
+      },
+      {
+        "prompt": "Dílo, ve kterém matka zabije své děti, má formu ...",
+        "answers": [
+          "drama"
+        ]
+      },
+      {
+        "prompt": "Text plný rad o milostném chování je psán formou ...",
+        "answers": [
+          "poezie"
+        ]
+      },
+      {
+        "prompt": "Dílo sledující osudy uprchlíka z dobytého města je psáno formou ...",
+        "answers": [
+          "poezie"
+        ]
+      },
+      {
+        "prompt": "Sbírka příběhů, kde se lidé mění v rostliny, zvířata či hvězdy, je psána formou ...",
+        "answers": [
+          "poezie"
+        ]
+      },
+      {
+        "prompt": "Teskný text vznikající v odloučení autora od vlasti má formu ...",
+        "answers": [
+          "poezie"
+        ]
+      },
+      {
+        "prompt": "Filozofické úvahy o lidském životě a jeho smyslu mají formu ...",
+        "answers": [
+          "próza",
+          "proza"
+        ]
+      },
+      {
+        "prompt": "Komedie založená na záměně identity a mazanosti sluhy má formu ...",
+        "answers": [
+          "drama"
+        ]
+      },
+      {
+        "prompt": "Text odhalující lidskou lakotu skrze motiv nalezeného pokladu má formu ...",
+        "answers": [
+          "drama"
+        ]
+      },
+      {
+        "prompt": "Text o stvoření světa a počátku lidstva má formu ...",
+        "answers": [
+          "próza",
+          "proza"
+        ]
+      },
+      {
+        "prompt": "Vyprávění o putování národa z otroctví do zaslíbené země má formu ...",
+        "answers": [
+          "próza",
+          "proza"
+        ]
+      },
+      {
+        "prompt": "Sbírka modliteb a písní určených k uctívání Boha má formu ...",
+        "answers": [
+          "poezie"
+        ]
+      },
+      {
+        "prompt": "Apokalyptické vidění konce světa má formu ...",
+        "answers": [
+          "próza",
+          "proza"
+        ]
+      },
+      {
+        "prompt": "Vyprávění o životě a skutcích Ježíše Krista má formu ...",
+        "answers": [
+          "próza",
+          "proza"
+        ]
+      },
+      {
+        "prompt": "Historické vyprávění o počátcích českého státu má formu ...",
+        "answers": [
+          "próza",
+          "proza"
+        ]
+      },
+      {
+        "prompt": "Satirická skladba zobrazující nešvary společnosti má formu ...",
+        "answers": [
+          "poezie"
+        ]
+      },
+      {
+        "prompt": "Text sloužící jako předmluva k překladu evangelia má formu ...",
+        "answers": [
+          "poezie"
+        ]
+      },
+      {
+        "prompt": "Dílo zachycující spor o živobytí mezi dvěma postavami má formu ...",
+        "answers": [
+          "poezie"
+        ]
+      },
+      {
+        "prompt": "Text, ve kterém se člověk přel se Smrtí o smysl života, má formu ...",
+        "answers": [
+          "poezie"
+        ]
+      },
+      {
+        "prompt": "Sbírka latinských studentských písní má formu ...",
+        "answers": [
+          "poezie"
+        ]
+      },
+      {
+        "prompt": "Dílo o třech Mariích, které nakupují na trhu masti k balzamování Kristova těla, je psáno formou ...",
+        "answers": [
+          "drama"
+        ]
+      },
+      {
+        "prompt": "Dílo o strážcích pokladu a rytíři s pláštěm neviditelnosti je psáno formou ...",
+        "answers": [
+          "poezie"
+        ]
+      },
+      {
+        "prompt": "Dílo, ve kterém se objevuje Excalibur, je psáno formou ...",
+        "answers": [
+          "poezie"
+        ]
+      },
+      {
+        "prompt": "Dílo, ve kterém nalezneme mrtvého jezdce v sedle koně, je psáno formou ...",
+        "answers": [
+          "poezie"
+        ]
+      },
+      {
+        "prompt": "Dílo, ve kterém hlavní postava troubí na olifant, je psáno formou ...",
+        "answers": [
+          "poezie"
+        ]
+      }
+    ]
+  },
+  "druh": {
+    "label": "Literární druh",
+    "sharpCount": 2,
+    "questions": [
+      {
+        "prompt": "Dílo, v němž se střetávají hrdinové a bohové během obléhání města, patří k literárnímu druhu ...",
+        "answers": [
+          "epika"
+        ]
+      },
+      {
+        "prompt": "Vyprávění o cestě hrdiny, který překonává nástrahy bohů i přírody, patří k literárnímu druhu...",
+        "answers": [
+          "epika"
+        ]
+      },
+      {
+        "prompt": "Příběh o hledání nesmrtelnosti a přátelství dvou mužů patří k literárnímu druhu...",
+        "answers": [
+          "epika"
+        ]
+      },
+      {
+        "prompt": "Dílo, v němž hrdina odhalí pravdu o svém původu a přijímá trest, patří k literárnímu druhu...",
+        "answers": [
+          "drama"
+        ]
+      },
+      {
+        "prompt": "Historické líčení vojenského tažení je příkladem literárního druhu ...",
+        "answers": [
+          "epika",
+          "epiky"
+        ]
+      },
+      {
+        "prompt": "Dílo zobrazující pomstu ženy na jejím manželovi patří k literárnímu druhu ...",
+        "answers": [
+          "drama"
+        ]
+      },
+      {
+        "prompt": "Tragický příběh matky, která zabije své děti, patří k literárnímu druhu ...",
+        "answers": [
+          "drama"
+        ]
+      },
+      {
+        "prompt": "Text obsahující rady o milostném životě patří k literárnímu druhu ...",
+        "answers": [
+          "lyrika"
+        ]
+      },
+      {
+        "prompt": "Vyprávění o osudech uprchlíka zakládajícího nový národ patří k literárnímu druhu ...",
+        "answers": [
+          "epika"
+        ]
+      },
+      {
+        "prompt": "Sbírka příběhů, kde se lidé mění v rostliny, zvířata či hvězdy, patří k literárnímu druhu...",
+        "answers": [
+          "epika"
+        ]
+      },
+      {
+        "prompt": "Text vyjadřující osobní bolest z vyhnanství a stesk autora patří k literárnímu druhu ...",
+        "answers": [
+          "lyrika"
+        ]
+      },
+      {
+        "prompt": "Hra odhalující lidské slabosti a chamtivost patří k literárnímu druhu ...",
+        "answers": [
+          "drama"
+        ]
+      },
+      {
+        "prompt": "Vyprávění o stvoření světa patří k literárnímu druhu ...",
+        "answers": [
+          "epika"
+        ]
+      },
+      {
+        "prompt": "Příběh o putování vyvoleného národa pouští patří k literárnímu druhu ...",
+        "answers": [
+          "epika"
+        ]
+      },
+      {
+        "prompt": "Soubor biblických modliteb a písní patří k literárnímu druhu ...",
+        "answers": [
+          "lyrika"
+        ]
+      },
+      {
+        "prompt": "Hrdinský příběh o rytíři bojujícím za čest a víru patří k literárnímu druhu ...",
+        "answers": [
+          "epika"
+        ]
+      },
+      {
+        "prompt": "Vyprávění o králi a jeho družině kulatého stolu patří k literárnímu druhu...",
+        "answers": [
+          "epika"
+        ]
+      },
+      {
+        "prompt": "Příběh o bojovníkovi, který umírá po hrdinském činu, patří k literárnímu druhu...",
+        "answers": [
+          "epika"
+        ]
+      },
+      {
+        "prompt": "Text o hrdinovi, jehož tělo zůstává po smrti v sedle koně, patří k literárnímu druhu...",
+        "answers": [
+          "epika"
+        ]
+      },
+      {
+        "prompt": "Chronologické beletristické líčení dějin národa patří k literárnímu druhu ...",
+        "answers": [
+          "epika"
+        ]
+      },
+      {
+        "prompt": "Satirická skladba kritizující středověkou společnost patří k literárnímu druhu ...",
+        "answers": [
+          "lyrika"
+        ]
+      },
+      {
+        "prompt": "Sbírka studentských písní patří k literárnímu druhu...",
+        "answers": [
+          "lyrika"
+        ]
+      },
+      {
+        "prompt": "Dílo s převahou vyprávění a dějové linie patří k literárnímu druhu ...",
+        "answers": [
+          "epika"
+        ]
+      },
+      {
+        "prompt": "Text vyjadřující city a vnitřní prožívání patří k literárnímu druhu...",
+        "answers": [
+          "lyrika"
+        ]
+      },
+      {
+        "prompt": "Dílo určené k inscenaci na jevišti patří k literárnímu druhu ...",
+        "answers": [
+          "drama"
+        ]
+      }
+    ]
+  },
+  "zanr": {
+    "label": "Literární žánr",
+    "sharpCount": 2,
+    "questions": [
+      {
+        "prompt": "Rozsáhlé vyprávění o hrdinských činech během válečného konfliktu je z hlediska žánru...",
+        "answers": [
+          "epos"
+        ]
+      },
+      {
+        "prompt": "Dobrodružná pouť po ostrovech je z hlediska žánru...",
+        "answers": [
+          "epos"
+        ]
+      },
+      {
+        "prompt": "Staroorientální vyprávění o hledání nesmrtelnosti je z hlediska žánru...",
+        "answers": [
+          "epos"
+        ]
+      },
+      {
+        "prompt": "Dílo zachycující krvavou pomstu v rodině je z hlediska žánru...",
+        "answers": [
+          "tragédie",
+          "tragedie"
+        ]
+      },
+      {
+        "prompt": "Příběh muže, který po návratu z války najde manželku s milencem je z hlediska žánru...",
+        "answers": [
+          "tragédie",
+          "tragedie"
+        ]
+      },
+      {
+        "prompt": "Osobní, citově zabarvený text z odloučení se obecně nazývá...",
+        "answers": [
+          "žalozpěv",
+          "zalospev"
+        ]
+      },
+      {
+        "prompt": "Úvaha o smyslu života se obecně nazývá...",
+        "answers": [
+          "filozofický spis",
+          "filozofická próza",
+          "filosofický spis",
+          "filosofická próza"
+        ]
+      },
+      {
+        "prompt": "Hra založená na komických situacích se nazývá...",
+        "answers": [
+          "komedie"
+        ]
+      },
+      {
+        "prompt": "Žánr, kde francký rytíř velí zadnímu voji armády, se nazývá...",
+        "answers": [
+          "epos"
+        ]
+      },
+      {
+        "prompt": "Žánr, kde sledujeme středověkého krále a jeho družinu, se nazývá...",
+        "answers": [
+          "epos",
+          "hrdinský epos",
+          "rytířský epos"
+        ]
+      },
+      {
+        "prompt": "Vyprávění dějin v chronologickém sledu se z hlediska žánru nazývá...",
+        "answers": [
+          "kronika"
+        ]
+      },
+      {
+        "prompt": "Text oslavující světce si se zázraky se nazývá...",
+        "answers": [
+          "legenda"
+        ]
+      },
+      {
+        "prompt": "Alegorický spor člověka se Smrtí je ve středověku představen z hlediska žánru jako...",
+        "answers": [
+          "alegorie",
+          "alegorická skladba",
+          "spor"
+        ]
+      }
+    ]
+  },
+  "pojem": {
+    "label": "Literární pojem",
+    "sharpCount": 2,
+    "questions": [
+      {
+        "prompt": "\"Slunce se smálo nad krajinou.\"",
+        "answers": [
+          "personifikace"
+        ]
+      },
+      {
+        "prompt": "\"Silný jako lev.\"",
+        "answers": [
+          "přirovnání",
+          "prirovnani"
+        ]
+      },
+      {
+        "prompt": "\"Bílá noc\"",
+        "answers": [
+          "oxymóron",
+          "oxymoron"
+        ]
+      },
+      {
+        "prompt": "\"Ach, ty krutý světe!\"",
+        "answers": [
+          "apostrofa"
+        ]
+      },
+      {
+        "prompt": "\"Běží, běží, běží čas...\"",
+        "answers": [
+          "epizeuxis"
+        ]
+      },
+      {
+        "prompt": "\"Posmutnělá noc\"",
+        "answers": [
+          "epiteton"
+        ]
+      },
+      {
+        "prompt": "\"Vítr zpíval v korunách stromů.\"",
+        "answers": [
+          "personifikace"
+        ]
+      },
+      {
+        "prompt": "\"Perly rosy\"",
+        "answers": [
+          "metafora"
+        ]
+      },
+      {
+        "prompt": "\"Tichounce, tichounce padal sníh.\"",
+        "answers": [
+          "epizeuxis"
+        ]
+      },
+      {
+        "prompt": "\"Ó lásko, proč jsi tak krutá?\"",
+        "answers": [
+          "apostrofa"
+        ]
+      },
+      {
+        "prompt": "\"Je to liška podšitá.\"",
+        "answers": [
+          "metonymie"
+        ]
+      },
+      {
+        "prompt": "\"Veselý jak ptáček.\"",
+        "answers": [
+          "přirovnání",
+          "prirovnani"
+        ]
+      },
+      {
+        "prompt": "\"Jsem tak unavený, že padnu.\"",
+        "answers": [
+          "hyperbola"
+        ]
+      },
+      {
+        "prompt": "\"Tisíckrát mi sliboval hory doly.\"",
+        "answers": [
+          "hyperbola"
+        ]
+      },
+      {
+        "prompt": "\"Krásný je sníh, krásnější je vločka, nejbáječnější ta tvoje tvář.\"",
+        "answers": [
+          "gradace"
+        ]
+      },
+      {
+        "prompt": "\"Přiblížila se k domku malému.\"",
+        "answers": [
+          "inverze"
+        ]
+      },
+      {
+        "prompt": "\"Ticho se rozeznělo nad celým krajem.\"",
+        "answers": [
+          "oxymóron",
+          "oxymoron"
+        ]
+      },
+      {
+        "prompt": "Opakování slov na začátku veršů se nazývá...",
+        "answers": [
+          "anafora"
+        ]
+      },
+      {
+        "prompt": "Opakování slov na konci veršů se nazývá...",
+        "answers": [
+          "epifora"
+        ]
+      },
+      {
+        "prompt": "Opakování stejné souhlásky v sousedících slovech se nazývá...",
+        "answers": [
+          "aliterace"
+        ]
+      },
+      {
+        "prompt": "Básnické pojmenování na základě vnější podobnosti se nazývá...",
+        "answers": [
+          "metafora"
+        ]
+      },
+      {
+        "prompt": "Zosobňování zvířat, rostlin, věcí... se terminologicky nazývá...",
+        "answers": [
+          "personifikace"
+        ]
+      },
+      {
+        "prompt": "Zveličení se nazývá...",
+        "answers": [
+          "hyperbola"
+        ]
+      },
+      {
+        "prompt": "Záměrně obrácený slovosled se nazývá...",
+        "answers": [
+          "inverze"
+        ]
+      },
+      {
+        "prompt": "Postupné zesilování významu se nazývá...",
+        "answers": [
+          "gradace"
+        ]
+      },
+      {
+        "prompt": "Přímé oslovení nepřítomné osoby nebo abstraktního pojmu se nazývá...",
+        "answers": [
+          "apostrofa"
+        ]
+      },
+      {
+        "prompt": "Spojení významově protikladných slov se nazývá...",
+        "answers": [
+          "oxymóron",
+          "oxymoron"
+        ]
+      },
+      {
+        "prompt": "Nahrazení pojmenování jiným na základě věcné souvislosti se nazývá...",
+        "answers": [
+          "metonymie"
+        ]
+      },
+      {
+        "prompt": "Verš bez pravidelného rýmu a rytmu se nazývá...",
+        "answers": [
+          "volny vers",
+          "volný verš"
+        ]
+      },
+      {
+        "prompt": "Skupina veršů oddělená v básni mezerou se nazývá...",
+        "answers": [
+          "sloka"
+        ]
+      },
+      {
+        "prompt": "Zvuková shoda na konci veršů se nazývá...",
+        "answers": [
+          "rym",
+          "rým"
+        ]
+      },
+      {
+        "prompt": "Základní rytmická jednotka verše se nazývá...",
+        "answers": [
+          "stopa"
+        ]
+      },
+      {
+        "prompt": "Opakování stejného slova za sebou se nazývá...",
+        "answers": [
+          "epizeuxis"
+        ]
+      },
+      {
+        "prompt": "Básnický příměr s použitím slov \"jako, jak, jako by\" se nazývá...",
+        "answers": [
+          "přirovnání",
+          "prirovnani..."
+        ]
+      },
+      {
+        "prompt": "Přívlastek básnicky rozvíjející podstatné jméno se nazývá...",
+        "answers": [
+          "epiteton"
+        ]
+      },
+      {
+        "prompt": "Nesmyslné či zdánlivě protichůdné spojení, které má estetický účinek se nazývá...",
+        "answers": [
+          "oxymóron",
+          "oxymoron"
+        ]
+      },
+      {
+        "prompt": "Oslovení v uměleckém textu se nazývá...",
+        "answers": [
+          "apostrofa"
+        ]
+      },
+      {
+        "prompt": "Opakování hlásek na začátku několika slov se nazývá...",
+        "answers": [
+          "aliterace"
+        ]
+      },
+      {
+        "prompt": "Opakování téhož slova či sousloví na začátku několika veršů se nazývá...",
+        "answers": [
+          "anafora"
+        ]
+      },
+      {
+        "prompt": "Opakování téhož slova či sousloví na konci několika veršů se nazývá...",
+        "answers": [
+          "epifora"
+        ]
+      },
+      {
+        "prompt": "Přenesené pojmenování založené na věcné souvislosti se nazývá...",
+        "answers": [
+          "metonymie"
+        ]
+      },
+      {
+        "prompt": "Schéma pravidelného střídání přízvučných a nepřízvučných slabik se nazývá...",
+        "answers": [
+          "sylabotonický rytmus"
+        ]
+      },
+      {
+        "prompt": "Pravidelná zvuková organizace básně se nazývá...",
+        "answers": [
+          "rytmus"
+        ]
+      },
+      {
+        "prompt": "Jeden řádek básnického textu se nazývá...",
+        "answers": [
+          "vers",
+          "verš"
+        ]
+      },
+      {
+        "prompt": "Psaní bez vazby na veršové členění, souvisle v řádcích (dale pak členění do odstavců či capitol) se nazývá...",
+        "answers": [
+          "próza",
+          "proza"
+        ]
+      },
+      {
+        "prompt": "Text členěný do veršů, slok a zpěvů se nazývá...",
+        "answers": [
+          "poezie"
+        ]
+      },
+      {
+        "prompt": "Text určený k jevištnímu provedení se nazývá...",
+        "answers": [
+          "drama"
+        ]
+      },
+      {
+        "prompt": "Text, ze kterého se dozvídáme, co se děje na jevišti a je psán v závorkách, se nazývá",
+        "answers": [
+          "scénická poznámka",
+          "jevištní poznámka"
+        ]
+      },
+      {
+        "prompt": "Rytmus, který je založen na střídání krátkých a dlouhých slabik (typický pro starší českou poezii), se nazývá...",
+        "answers": [
+          "časoměrný rytmus",
+          "časoměrný",
+          "časomíra"
+        ]
+      },
+      {
+        "prompt": "Druh rýmu se schématem aabb se nazývá...",
+        "answers": [
+          "sdružený",
+          "sdružený rým"
+        ]
+      },
+      {
+        "prompt": "V díle Vita Caroli se objevuje zvláštní typ vypravěče zvaný ...",
+        "answers": [
+          "plural majestaticus",
+          "plurál majestátní"
+        ]
+      },
+      {
+        "prompt": "V trubadúrské poezii se objevuje žánr, kde se rytíř coby milenec loučí se svou milou po probdělé noci, tedy ...",
+        "answers": [
+          "svítáníčka",
+          "alba"
+        ]
+      },
+      {
+        "prompt": "Žánrem trubadúrské poezie je také taneční píseň ...",
+        "answers": [
+          "ballata",
+          "balata",
+          "balatta"
+        ]
+      },
+      {
+        "prompt": "Žánrem trubadúrské poezie je také milostný dopis ...",
+        "answers": [
+          "epistola"
+        ]
+      },
+      {
+        "prompt": "Žánrem trubadúrské poezie je také pastýřská píseň ...",
+        "answers": [
+          "pastorela",
+          "pastorella"
+        ]
+      }
+    ]
+  },
+  "obdobi": {
+    "label": "Literární období",
+    "sharpCount": 2,
+    "questions": [
+      {
+        "prompt": "Období spojené s Homérem, Sofoklem, Ovidiem a Vergiliem se nazývá ...",
+        "answers": [
+          "starověk",
+          "antika",
+          "řecká antika"
+        ]
+      },
+      {
+        "prompt": "Období, v němž vznikla Bible a antická mytologie, se nazývá ...",
+        "answers": [
+          "starověk",
+          "starověký Orient"
+        ]
+      },
+      {
+        "prompt": "Období řeckých tragédií a římských eposů se nazývá ...",
+        "answers": [
+          "starověk",
+          "antika"
+        ]
+      },
+      {
+        "prompt": "Období spojené s legendami, kronikami a duchovní literaturou se nazývá ...",
+        "answers": [
+          "stredovek",
+          "středověk"
+        ]
+      },
+      {
+        "prompt": "Období, v němž vznikl Proglas a Kristiánova legenda, se nazývá ...",
+        "answers": [
+          "stredovek",
+          "středověk"
+        ]
+      },
+      {
+        "prompt": "Období rytířských eposů, světské i duchovní poezie se nazývá ...",
+        "answers": [
+          "stredovek",
+          "středověk"
+        ]
+      },
+      {
+        "prompt": "Homér patří do období ...",
+        "answers": [
+          "starověk",
+          "antika",
+          "řecká antika"
+        ]
+      },
+      {
+        "prompt": "Sofoklés patří do období ...",
+        "answers": [
+          "starověk",
+          "antika",
+          "řecká antika"
+        ]
+      },
+      {
+        "prompt": "Eurípidés patří do období ...",
+        "answers": [
+          "starověk",
+          "antika",
+          "řecká antika"
+        ]
+      },
+      {
+        "prompt": "Ovidius patří do období ...",
+        "answers": [
+          "starověk",
+          "antika",
+          "římská antika"
+        ]
+      },
+      {
+        "prompt": "Vergilius patří do období ...",
+        "answers": [
+          "starověk",
+          "antika",
+          "římská antika"
+        ]
+      },
+      {
+        "prompt": "Bible vznikala ve starověku nebo ve středověku?",
+        "answers": [
+          "starověk, starověký Orient"
+        ]
+      },
+      {
+        "prompt": "Kosmas patří do období ...",
+        "answers": [
+          "stredovek",
+          "středověk"
+        ]
+      },
+      {
+        "prompt": "Jan ze Žatce patří do období ...",
+        "answers": [
+          "stredovek",
+          "středověk"
+        ]
+      },
+      {
+        "prompt": "Smil Flaška z Pardubic patří do období ...",
+        "answers": [
+          "stredovek",
+          "středověk"
+        ]
+      },
+      {
+        "prompt": "Konstantin a Metoděj působili v období ...",
+        "answers": [
+          "stredovek",
+          "středověk"
+        ]
+      },
+      {
+        "prompt": "Řecká a římská literatura patří do období ...",
+        "answers": [
+          "starověk",
+          "antika"
+        ]
+      },
+      {
+        "prompt": "Feudální společnost, rytíři a křesťanství jsou typické pro ...",
+        "answers": [
+          "stredovek",
+          "středověk"
+        ]
+      },
+      {
+        "prompt": "Legendistika a kronikářství jsou typické pro ...",
+        "answers": [
+          "stredovek",
+          "středověk"
+        ]
+      },
+      {
+        "prompt": "Rytířská literatura patří do období ...",
+        "answers": [
+          "stredovek",
+          "středověk"
+        ]
+      },
+      {
+        "prompt": "Mastičkář patří do období ...",
+        "answers": [
+          "stredovek",
+          "středověk"
+        ]
+      },
+      {
+        "prompt": "Carmina Burana patří do období ...",
+        "answers": [
+          "stredovek",
+          "středověk"
+        ]
+      },
+      {
+        "prompt": "Zápisky o válce galské patří do období ...",
+        "answers": [
+          "starověk",
+          "antika",
+          "římská antika"
+        ]
+      },
+      {
+        "prompt": "Oráč z Čech patří do období ...",
+        "answers": [
+          "stredovek",
+          "středověk"
+        ]
+      }
+    ]
+  },
+  "postava": {
+    "label": "Literární postava",
+    "sharpCount": 2,
+    "questions": [
+      {
+        "prompt": "Ithacký král, manžel Pénelopy se nazývá...",
+        "answers": [
+          "odysseus"
+        ]
+      },
+      {
+        "prompt": "Největší řecký bojovník před Trójou se nazývá...",
+        "answers": [
+          "achilleus",
+          "achilles"
+        ]
+      },
+      {
+        "prompt": "Trojský princ, který unesl Helenu se nazývá...",
+        "answers": [
+          "paris"
+        ]
+      },
+      {
+        "prompt": "Statečný trojský obránce, který byl zabit Achillem, se nazývá...",
+        "answers": [
+          "hektor"
+        ]
+      },
+      {
+        "prompt": "Řecký král, velitel výpravy proti Tróji se jmenuje...",
+        "answers": [
+          "agamemnon",
+          "agamemnón"
+        ]
+      },
+      {
+        "prompt": "Bratr Agamemnóna, manžel Heleny se nazývá...",
+        "answers": [
+          "menelaos",
+          "meneláos"
+        ]
+      },
+      {
+        "prompt": "Achilleův přítel, jehož smrt ho přiměje vrátit se do boje, se nazývá...",
+        "answers": [
+          "patroklos"
+        ]
+      },
+      {
+        "prompt": "Žena, kvůli níž vypukla trojská válka, se nazývá...",
+        "answers": [
+          "helena"
+        ]
+      },
+      {
+        "prompt": "Otrokyňka, o kterou se přou Achilleus a Agamemnón se nazývá...",
+        "answers": [
+          "briseovna",
+          "briseis",
+          "bríseovna",
+          "bríseis"
+        ]
+      },
+      {
+        "prompt": "Král Théb, který nevědomky zabil svého otce a pojal svou matku, se jmenuje ...",
+        "answers": [
+          "oidipus",
+          "oidipous"
+        ]
+      },
+      {
+        "prompt": "Medein manžel, který ji opustil, se jmenuje ...",
+        "answers": [
+          "iason",
+          "jason"
+        ]
+      },
+      {
+        "prompt": "Žena, která z pomsty zabila své děti, se jmenuje ...",
+        "answers": [
+          "medea",
+          "médea"
+        ]
+      },
+      {
+        "prompt": "Mykénský král zavražděný po návratu z války se jmenuje ...",
+        "answers": [
+          "agamemnon",
+          "agamemnón"
+        ]
+      },
+      {
+        "prompt": "Manželka Agamemnóna, která ho zavraždila, se jmenuje ...",
+        "answers": [
+          "klytaimestra",
+          "klytaiméstra"
+        ]
+      },
+      {
+        "prompt": "Syn Agamemnóna a Klytaiméstry se jmenuje ...",
+        "answers": [
+          "orestes",
+          "orestés"
+        ]
+      },
+      {
+        "prompt": "Muž, který utekl z Tróji a založil město Řím podle římské mytické traduce, se jmenuje...",
+        "answers": [
+          "aeneas"
+        ]
+      },
+      {
+        "prompt": "Muž, který vedl Izraelity z Egypta, se jmenuje ...",
+        "answers": [
+          "Mojžíš"
+        ]
+      },
+      {
+        "prompt": "Král spojený s biblickými žalmy se jmenuje ...",
+        "answers": [
+          "David"
+        ]
+      },
+      {
+        "prompt": "Matka Ježíše Krista se jmenuje ...",
+        "answers": [
+          "maria",
+          "marie"
+        ]
+      },
+      {
+        "prompt": "Pěstoun Ježíše Krista se jmenuje ...",
+        "answers": [
+          "josef"
+        ]
+      },
+      {
+        "prompt": "Apoštol, který zradil Ježíše, se jmenuje ...",
+        "answers": [
+          "judas"
+        ]
+      },
+      {
+        "prompt": "Apoštol, který Ježíše třikrát zapřel, se jmenuje ...",
+        "answers": [
+          "petr"
+        ]
+      },
+      {
+        "prompt": "Římský místodržitel, který dal souhlas k ukřižování Ježíše, se jmenuje ...",
+        "answers": [
+          "pilat",
+          "pontsky pilat",
+          "pontský pilát"
+        ]
+      },
+      {
+        "prompt": "Kníže zavražděný ve Staré Boleslavi se jmenuje ...",
+        "answers": [
+          "vaclav",
+          "václav"
+        ]
+      },
+      {
+        "prompt": "Babička svatého Václava se jmenovala...",
+        "answers": [
+          "ludmila",
+          "ludmilla",
+          "ludmila svata",
+          "svata ludmila"
+        ]
+      },
+      {
+        "prompt": "Panovník, kterému radí zvířata v Nové radě, se jmenuje...",
+        "answers": [
+          "vaclav ctvrty",
+          "václav čtvrtý",
+          "vaclav iv",
+          "václav iv"
+        ]
+      },
+      {
+        "prompt": "Kouzelník z artušovských legend se jmenuje ...",
+        "answers": [
+          "merlin"
+        ]
+      },
+      {
+        "prompt": "Královna, manželka krále Artuše, se jmenuje ...",
+        "answers": [
+          "guinevera",
+          "Guinevere",
+          "Ginevra"
+        ]
+      },
+      {
+        "prompt": "Francký rytíř, který troubil na olifant, se jmenuje ...",
+        "answers": [
+          "roland"
+        ]
+      },
+      {
+        "prompt": "Španělský rytíř posazený do sedla koně jako mrtvý se jmenoval...",
+        "answers": [
+          "rodrigo diaz de vivar",
+          "rodrigo díaz de vivar"
+        ]
+      },
+      {
+        "prompt": "Manželka Cida se jmenovala...",
+        "answers": [
+          "Chiména"
+        ]
+      },
+      {
+        "prompt": "Muž, který unesl Helenu do Tróje, se jmenuje ...",
+        "answers": [
+          "paris"
+        ]
+      },
+      {
+        "prompt": "Zakladatel římské linie hrdinů po pádu Tróje se jmenuje ...",
+        "answers": [
+          "aeneas"
+        ]
+      },
+      {
+        "prompt": "Žena, která pomohla Argonautům a pak se pomstila Jasonovi, se jmenuje ...",
+        "answers": [
+          "medea",
+          "médea"
+        ]
+      },
+      {
+        "prompt": "Bůh podsvětí, vládce mrtvých v řecké mytologii se jmenuje ...",
+        "answers": [
+          "hades"
+        ]
+      },
+      {
+        "prompt": "Bůh moří v řecké mytologii se jmenuje ...",
+        "answers": [
+          "Poseidon"
+        ]
+      },
+      {
+        "prompt": "Bůh múz a inspirace či umění podle řecké mytologie se jmenuje ...",
+        "answers": [
+          "Apollon"
+        ]
+      },
+      {
+        "prompt": "Bůh války v řecké mytologii se jmenuje ...",
+        "answers": [
+          "Árés"
+        ]
+      },
+      {
+        "prompt": "Bůh podsvětí, vládce mrtvých v řecké mytologii se jmenuje ...",
+        "answers": [
+          "hades"
+        ]
+      },
+      {
+        "prompt": "Bůh zlodějů v římské mytologii se jmenuje ...",
+        "answers": [
+          "Merkur"
+        ]
+      },
+      {
+        "prompt": "Bůh podsvětí, vládce mrtvých v římské mytologii se jmenuje ...",
+        "answers": [
+          "Pluto"
+        ]
+      },
+      {
+        "prompt": "Bohyně krásy, římské mytologii se jmenuje ...",
+        "answers": [
+          "hades"
+        ]
+      },
+      {
+        "prompt": "Bohyně úrody římské mytologii se jmenuje ...",
+        "answers": [
+          "Cérés"
+        ]
+      }
+    ]
+  }
+};
+
+    let currentMode = 'practice';
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let correctCount = 0;
+    let wrongCount = 0;
+    let answered = false;
+    let autoAdvanceTimer = null;
+    let questionTimer = null;
+    let timeRemaining = 15;
+    let currentPracticeSection = null;
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function ensureAudioReady() {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function tone(freq, start, duration, type = 'sine', volume = 0.24) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, start);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(volume, start + 0.015);
+      gain.gain.exponentialRampToValueAtTime(Math.max(volume * 0.45, 0.0001), start + Math.max(duration - 0.05, 0.02));
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+      osc.start(start);
+      osc.stop(start + duration);
+    }
+
+    function chord(freqs, delay, duration, type = 'sine', volume = 0.18) {
+      const start = audioCtx.currentTime + delay;
+      freqs.forEach(freq => tone(freq, start, duration, type, volume));
+    }
+
+    function playErrorSound() {
+      ensureAudioReady();
+      const now = audioCtx.currentTime;
+      tone(196.00, now, 0.16, 'sawtooth', 0.28);
+      tone(164.81, now + 0.08, 0.18, 'square', 0.24);
+      tone(130.81, now + 0.18, 0.30, 'sawtooth', 0.30);
+      tone(98.00, now + 0.26, 0.36, 'triangle', 0.20);
+    }
+
+    function playSuccessSound() {
+      ensureAudioReady();
+      const now = audioCtx.currentTime;
+      tone(523.25, now, 0.12, 'triangle', 0.20);
+      tone(659.25, now + 0.10, 0.14, 'triangle', 0.22);
+      tone(783.99, now + 0.20, 0.16, 'triangle', 0.24);
+      chord([1046.50, 1318.51, 1567.98], 0.32, 0.34, 'sine', 0.14);
+    }
+
+    function playArenaSound(mode = 'practice') {
+      ensureAudioReady();
+      const now = audioCtx.currentTime;
+      const base = mode === 'sharp' ? 196 : 220;
+      const partials = [
+        { f: base * 1.00, v: 0.09, t: 'triangle', d: 0.55 },
+        { f: base * 1.41, v: 0.08, t: 'sine', d: 0.48 },
+        { f: base * 2.17, v: 0.06, t: 'triangle', d: 0.42 },
+        { f: base * 2.92, v: 0.05, t: 'sine', d: 0.34 },
+        { f: base * 3.76, v: 0.04, t: 'triangle', d: 0.28 }
+      ];
+      partials.forEach((p, i) => tone(p.f, now + i * 0.004, p.d, p.t, p.v));
+      tone(base * 0.50, now + 0.018, 0.18, 'square', mode === 'sharp' ? 0.11 : 0.08);
+      tone(base * 4.6, now + 0.006, 0.08, 'sine', 0.025);
+      tone(base * 3.2, now + 0.11, 0.18, 'triangle', 0.03);
+    }
+
+    function playGradeSound(mark) {
+      ensureAudioReady();
+      if (mark === 1) {
+        const now = audioCtx.currentTime;
+        tone(523.25, now, 0.12, 'triangle', 0.20);
+        tone(659.25, now + 0.11, 0.12, 'triangle', 0.22);
+        tone(783.99, now + 0.22, 0.14, 'triangle', 0.24);
+        chord([1046.50, 1318.51, 1567.98], 0.36, 0.55, 'sine', 0.18);
+        chord([2093.00], 0.42, 0.45, 'triangle', 0.12);
+      } else if (mark === 2) {
+        const now = audioCtx.currentTime;
+        tone(493.88, now, 0.13, 'triangle', 0.20);
+        tone(587.33, now + 0.11, 0.13, 'triangle', 0.20);
+        chord([698.46, 987.77], 0.24, 0.42, 'sine', 0.14);
+      } else if (mark === 3) {
+        const now = audioCtx.currentTime;
+        tone(392.00, now, 0.14, 'triangle', 0.18);
+        tone(440.00, now + 0.12, 0.14, 'triangle', 0.18);
+        tone(523.25, now + 0.25, 0.28, 'sine', 0.14);
+      } else if (mark === 4) {
+        const now = audioCtx.currentTime;
+        tone(246.94, now, 0.18, 'square', 0.22);
+        tone(220.00, now + 0.14, 0.22, 'square', 0.24);
+        tone(196.00, now + 0.28, 0.30, 'sawtooth', 0.26);
+      } else {
+        const now = audioCtx.currentTime;
+        tone(196.00, now, 0.18, 'square', 0.24);
+        tone(174.61, now + 0.14, 0.20, 'square', 0.26);
+        tone(146.83, now + 0.28, 0.30, 'sawtooth', 0.28);
+        tone(110.00, now + 0.42, 0.42, 'sawtooth', 0.30);
+      }
+    }
+
+    function normalizeText(text) {
+      return text
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[.,!?;:"'`()]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function isWithinOneEdit(a, b) {
+      if (a === b) return true;
+      const lenA = a.length;
+      const lenB = b.length;
+      if (Math.abs(lenA - lenB) > 1) return false;
+      let i = 0;
+      let j = 0;
+      let edits = 0;
+      while (i < lenA && j < lenB) {
+        if (a[i] === b[j]) {
+          i++;
+          j++;
+          continue;
+        }
+        edits++;
+        if (edits > 1) return false;
+        if (lenA > lenB) i++;
+        else if (lenB > lenA) j++;
+        else {
+          i++;
+          j++;
+        }
+      }
+      if (i < lenA || j < lenB) edits++;
+      return edits <= 1;
+    }
+
+    function isAcceptedAnswer(userAnswer, answers) {
+      if (!userAnswer) return false;
+      return answers.some(answer => {
+        const normalizedAnswer = normalizeText(answer);
+        return userAnswer === normalizedAnswer || isWithinOneEdit(userAnswer, normalizedAnswer);
+      });
+    }
+
+    function shuffle(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function formatAnswer(answer) {
+      return answer.toUpperCase();
+    }
+
+    function buildSharpTest() {
+      const result = [];
+      for (const key of Object.keys(questionBank)) {
+        const section = questionBank[key];
+        const chosen = shuffle(section.questions).slice(0, section.sharpCount).map(q => ({ ...q, section: section.label }));
+        result.push(...chosen);
+      }
+      return shuffle(result);
+    }
+
+    function buildPracticePool(sectionKey = null) {
+      const all = [];
+      if (sectionKey && questionBank[sectionKey]) {
+        const section = questionBank[sectionKey];
+        section.questions.forEach(q => all.push({ ...q, section: section.label, sectionKey }));
+        return shuffle(all);
+      }
+      for (const key of Object.keys(questionBank)) {
+        const section = questionBank[key];
+        section.questions.forEach(q => all.push({ ...q, section: section.label, sectionKey: key }));
+      }
+      return shuffle(all);
+    }
+
+    function getPracticeSectionMenu() {
+      return [
+        { key: 'dilo', label: 'Díla' },
+        { key: 'autor', label: 'Autoři' },
+        { key: 'forma', label: 'Výrazové formy' },
+        { key: 'druh', label: 'Literární druhy' },
+        { key: 'zanr', label: 'Literární žánry' },
+        { key: 'obdobi', label: 'Literární období' },
+        { key: 'pojem', label: 'Pojmy' },
+        { key: 'postava', label: 'Postavy' }
+      ].filter(item => questionBank[item.key]);
+    }
+
+    function renderPracticeSectionButtons() {
+      const grid = document.getElementById('practiceSectionGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      getPracticeSectionMenu().forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'section-select-btn';
+        btn.textContent = item.label;
+        btn.onclick = () => selectPracticeSection(item.key);
+        grid.appendChild(btn);
+      });
+    }
+
+    function updateSectionBreakdown() {
+      const ul = document.getElementById('sectionBreakdown');
+      ul.innerHTML = '';
+      Object.values(questionBank).forEach(section => {
+        const li = document.createElement('li');
+        li.textContent = `${section.label}: ${section.sharpCount} otázky`;
+        ul.appendChild(li);
+      });
+    }
+
+    function showScreen(id) {
+      document.getElementById('screen-home').classList.add('hidden');
+      document.getElementById('screen-practice-sections').classList.add('hidden');
+      document.getElementById('screen-info').classList.add('hidden');
+      document.getElementById('screen-quiz').classList.add('hidden');
+      document.getElementById('screen-result').classList.add('hidden');
+      document.getElementById(id).classList.remove('hidden');
+      document.body.classList.remove('quiz-mode', 'result-mode');
+      if (id === 'screen-quiz') document.body.classList.add('quiz-mode');
+      if (id === 'screen-result') document.body.classList.add('result-mode');
+    }
+
+    function clearAutoAdvanceTimer() {
+      if (autoAdvanceTimer) {
+        clearTimeout(autoAdvanceTimer);
+        autoAdvanceTimer = null;
+      }
+    }
+
+    function clearQuestionTimer() {
+      if (questionTimer) {
+        clearInterval(questionTimer);
+        questionTimer = null;
+      }
+      const timerLabel = document.getElementById('timerLabel');
+      timerLabel.classList.add('hidden');
+      timerLabel.classList.remove('timer-warning');
+      timerLabel.textContent = 'Čas: 15 s';
+    }
+
+    function startQuestionTimer() {
+      clearQuestionTimer();
+      if (currentMode !== 'sharp') return;
+      const timerLabel = document.getElementById('timerLabel');
+      timeRemaining = 15;
+      timerLabel.textContent = `Čas: ${timeRemaining} s`;
+      timerLabel.classList.remove('hidden');
+      questionTimer = setInterval(() => {
+        if (answered) {
+          clearQuestionTimer();
+          return;
+        }
+        timeRemaining -= 1;
+        timerLabel.textContent = `Čas: ${timeRemaining} s`;
+        if (timeRemaining <= 5) {
+          timerLabel.classList.add('timer-warning');
+        }
+        if (timeRemaining <= 0) {
+          clearQuestionTimer();
+          submitAnswer(true);
+        }
+      }, 1000);
+    }
+
+    function goHome() {
+      clearAutoAdvanceTimer();
+      clearQuestionTimer();
+      answered = false;
+      currentPracticeSection = null;
+      document.getElementById('answerInput').value = '';
+      document.getElementById('feedback').className = 'feedback';
+      document.getElementById('feedback').innerHTML = '';
+      showScreen('screen-home');
+    }
+
+
+    let menuAudioCtx = null;
+    function ensureMenuAudio() {
+      if (!menuAudioCtx) {
+        menuAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (menuAudioCtx.state === "suspended") {
+        menuAudioCtx.resume();
+      }
+      return menuAudioCtx;
+    }
+
+    function playMetalClang(isStrong = false) {
+      const ctx = ensureMenuAudio();
+      const now = ctx.currentTime;
+
+      const master = ctx.createGain();
+      master.connect(ctx.destination);
+      master.gain.setValueAtTime(isStrong ? 0.34 : 0.24, now);
+
+      const freqs = isStrong
+        ? [830, 1245, 1660, 2080]
+        : [720, 1080, 1440, 1810];
+
+      freqs.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = i % 2 === 0 ? "triangle" : "square";
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.82, now + 0.42);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime((isStrong ? 0.20 : 0.15) / (i + 1), now + 0.005);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.46 + i * 0.03);
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(now + i * 0.004);
+        osc.stop(now + 0.5 + i * 0.03);
+      });
+
+      const thud = ctx.createOscillator();
+      const thudGain = ctx.createGain();
+      thud.type = "sine";
+      thud.frequency.setValueAtTime(isStrong ? 120 : 105, now);
+      thud.frequency.exponentialRampToValueAtTime(62, now + 0.16);
+      thudGain.gain.setValueAtTime(0.0001, now);
+      thudGain.gain.exponentialRampToValueAtTime(isStrong ? 0.22 : 0.14, now + 0.01);
+      thudGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+      thud.connect(thudGain);
+      thudGain.connect(master);
+      thud.start(now);
+      thud.stop(now + 0.24);
+    }
+
+    function collectStudentIdentity() {
+      const storedName = localStorage.getItem('literarniArenaStudentName') || currentStudentName || '';
+      const storedClass = localStorage.getItem('literarniArenaStudentClass') || currentStudentClass || '';
+      const enteredName = prompt('Zadej své jméno a příjmení:', storedName);
+      if (enteredName === null) return false;
+      const cleanName = enteredName.trim();
+      if (!cleanName) {
+        alert('Bez jména nemůže být výsledek zapsán do tabulky.');
+        return false;
+      }
+      const enteredClass = prompt('Zadej svou třídu:', storedClass);
+      if (enteredClass === null) return false;
+      currentStudentName = cleanName;
+      currentStudentClass = enteredClass.trim();
+      localStorage.setItem('literarniArenaStudentName', currentStudentName);
+      localStorage.setItem('literarniArenaStudentClass', currentStudentClass);
+      return true;
+    }
+
+    function openResultsTable() {
+      window.open(RESULTS_TABLE_URL, '_blank', 'noopener');
+    }
+
+    function setSaveStatus(message, isError = false) {
+      const el = document.getElementById('saveStatus');
+      if (!el) return;
+      el.textContent = message || '';
+      el.style.color = isError ? '#fecaca' : '#f7edd7';
+    }
+
+    async function sendSharpResult(mark, total) {
+      if (!currentStudentName) return false;
+      const payload = {
+        jmeno: currentStudentName,
+        trida: currentStudentClass,
+        rezim: 'SOUBOJ',
+        znamka: mark,
+        body: correctCount,
+        celkem: total,
+        spravne: correctCount,
+        spatne: wrongCount,
+        poznamka: '',
+        odeslano: new Date().toISOString()
+      };
+      try {
+        const response = await fetch(RESULTS_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        return response.ok;
+      } catch (e) {
+        console.error('Chyba při odesílání výsledku:', e);
+        return false;
+      }
+    }
+
+    function handlePracticeStart() {
+      playMetalClang(false);
+      setTimeout(() => openPracticeSections(), 120);
+    }
+
+    function handleSharpStart() {
+      if (!collectStudentIdentity()) return;
+      playMetalClang(true);
+      setTimeout(() => startSharp(), 140);
+    }
+
+    function openPracticeSections() {
+      clearAutoAdvanceTimer();
+      clearQuestionTimer();
+      answered = false;
+      renderPracticeSectionButtons();
+      showScreen('screen-practice-sections');
+    }
+
+    function selectPracticeSection(sectionKey) {
+      playArenaSound('practice');
+      startPractice(sectionKey);
+    }
+
+    function startPractice(sectionKey) {
+      clearAutoAdvanceTimer();
+      clearQuestionTimer();
+      currentMode = 'practice';
+      currentPracticeSection = sectionKey;
+      currentQuestions = buildPracticePool(sectionKey);
+      currentIndex = 0;
+      correctCount = 0;
+      wrongCount = 0;
+      answered = false;
+      showScreen('screen-quiz');
+      renderQuestion();
+    }
+
+    function startSharp() {
+      playArenaSound('sharp');
+      clearAutoAdvanceTimer();
+      clearQuestionTimer();
+      currentMode = 'sharp';
+      currentQuestions = buildSharpTest();
+      currentIndex = 0;
+      correctCount = 0;
+      wrongCount = 0;
+      answered = false;
+      showScreen('screen-quiz');
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      clearAutoAdvanceTimer();
+      if (currentMode === 'practice' && currentIndex >= currentQuestions.length) {
+        currentQuestions = buildPracticePool(currentPracticeSection);
+        currentIndex = 0;
+      }
+      const q = currentQuestions[currentIndex];
+      document.getElementById('modeLabel').textContent = currentMode === 'sharp' ? 'Režim: TEST' : 'Režim: TRÉNINK';
+      document.getElementById('progressLabel').textContent = `Otázka ${currentIndex + 1} / ${currentQuestions.length}`;
+      let labelText = '';
+      switch(q.section) {
+        case 'Název literárního díla': labelText = 'Doplň název literárního díla'; break;
+        case 'Autor': labelText = 'Doplň správného autora'; break;
+        case 'Výrazová forma': labelText = 'Doplň správnou literární formu'; break;
+        case 'Literární druh': labelText = 'Doplň správný literární druh'; break;
+        case 'Literární žánr': labelText = 'Doplň správný literární žánr'; break;
+        case 'Literární pojem': labelText = 'Doplň správný literární pojem'; break;
+        case 'Literární období': labelText = 'Doplň správné literární období'; break;
+        case 'Literární postava': labelText = 'Doplň správnou literární postavu'; break;
+        default: labelText = `Doplň správně: ${q.section}`;
+      }
+      document.getElementById('sectionLabel').textContent = labelText;
+      document.getElementById('questionText').textContent = q.prompt;
+      document.getElementById('answerInput').value = '';
+      document.getElementById('answerInput').disabled = false;
+      document.getElementById('answerInput').focus();
+      document.getElementById('submitBtn').classList.remove('hidden');
+      document.getElementById('nextBtn').classList.add('hidden');
+      const feedback = document.getElementById('feedback');
+      feedback.className = 'feedback';
+      feedback.innerHTML = '';
+      const stats = document.getElementById('practiceStats');
+      if (currentMode === 'practice') {
+        stats.classList.remove('hidden');
+        stats.textContent = `Správně: ${correctCount} | Špatně: ${wrongCount}`;
+      } else {
+        stats.classList.add('hidden');
+      }
+      answered = false;
+      startQuestionTimer();
+    }
+
+    function submitAnswer(isTimeout = false) {
+      if (answered) return;
+      clearAutoAdvanceTimer();
+      clearQuestionTimer();
+      const q = currentQuestions[currentIndex];
+      const userAnswer = normalizeText(document.getElementById('answerInput').value);
+      const good = isAcceptedAnswer(userAnswer, q.answers);
+      const feedback = document.getElementById('feedback');
+      answered = true;
+      document.getElementById('answerInput').disabled = true;
+      document.getElementById('submitBtn').classList.add('hidden');
+      if (good) {
+        correctCount++;
+        document.getElementById('nextBtn').classList.add('hidden');
+        feedback.className = 'feedback ok';
+        feedback.innerHTML = '<span><span class="feedback-main">✅ SPRÁVNĚ</span></span>';
+        playSuccessSound();
+        autoAdvanceTimer = setTimeout(() => {
+          autoAdvanceTimer = null;
+          nextQuestion();
+        }, 1000);
+      } else {
+        wrongCount++;
+        const mainAnswer = formatAnswer(q.answers[0]);
+        document.getElementById('nextBtn').classList.remove('hidden');
+        feedback.className = 'feedback bad';
+        feedback.innerHTML = `<span><span class="big-error">${isTimeout ? '⏰ VYPRŠEL ČAS' : '❌ CHYBA'}</span>SPRÁVNÁ ODPOVĚĎ: ${mainAnswer}</span>`;
+        playErrorSound();
+      }
+      if (currentMode === 'practice') {
+        document.getElementById('practiceStats').textContent = `Správně: ${correctCount} | Špatně: ${wrongCount}`;
+      }
+    }
+
+    function nextQuestion() {
+      clearAutoAdvanceTimer();
+      clearQuestionTimer();
+      currentIndex++;
+      if (currentMode === 'sharp' && currentIndex >= currentQuestions.length) {
+        showResults();
+        return;
+      }
+      renderQuestion();
+    }
+
+    function calculateMark(score) {
+      if (score >= 14) return 1;
+      if (score >= 12) return 2;
+      if (score >= 9) return 3;
+      if (score >= 7) return 4;
+      return 5;
+    }
+
+    async function showResults() {
+      clearAutoAdvanceTimer();
+      clearQuestionTimer();
+      const total = currentQuestions.length;
+      const mark = calculateMark(correctCount);
+      document.getElementById('resultMark').textContent = mark;
+      document.getElementById('screen-result').className = `card result-card-${mark}`;
+      document.getElementById('resultBanner').textContent = mark === 1 ? '🔥 MÁŠ JEDNIČKU!' : mark === 2 ? '👏 VELMI PĚKNÝ VÝSLEDEK' : mark === 3 ? '🙂 TOHLE JE JEŠTĚ DOBRÉ' : mark === 4 ? '⚠️ TĚSNĚ TO VYŠLO' : '📘 TO CHCE JEŠTĚ PROCVIČIT';
+      document.getElementById('resultText').innerHTML = `
+        Body: <strong>${correctCount}</strong> z <strong>${total}</strong>.<br>
+        Slovní hodnocení: <strong>${mark === 1 ? 'výborně' : mark === 2 ? 'chvalitebně' : mark === 3 ? 'dobře' : mark === 4 ? 'dostatečně' : 'nedostatečně'}</strong><br>
+        Výsledná známka: <strong>${mark}</strong>
+      `;
+      setSaveStatus('Odesílám výsledek do tabulky...');
+      playGradeSound(mark);
+      showScreen('screen-result');
+      const saved = await sendSharpResult(mark, total);
+      setSaveStatus(
+        saved
+          ? 'Pokus o odeslání výsledku proběhl.'
+          : 'Výsledek se nepodařilo odeslat.',
+        !saved
+      );
+    }
+
+    document.getElementById('answerInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        if (!answered) {
+          submitAnswer();
+        } else if (!autoAdvanceTimer) {
+          nextQuestion();
+        }
+      }
+    });
+
+    updateSectionBreakdown();
+    renderPracticeSectionButtons();
+  </script>
+</body>
+</html>
